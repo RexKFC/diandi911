@@ -9,6 +9,9 @@
     * { box-sizing: border-box; }
     body { margin: 0; min-height: 100vh; display: flex; justify-content: center; background: #292929; color: var(--ink); font-family: "PingFang SC", "Microsoft YaHei", sans-serif; }
     .page { position: relative; flex: 0 0 375px; width: 375px; min-width: 375px; height: 812px; min-height: 812px; overflow: hidden; background: var(--canvas); }
+    .scheme-switch { position: absolute; z-index: 5; top: 12px; left: 50%; display: flex; height: 32px; padding: 3px; border: 1px solid rgb(0 0 0 / 6%); border-radius: 18px; background: rgb(255 255 255 / 78%); box-shadow: 0 4px 14px rgb(0 0 0 / 5%); transform: translateX(-50%); backdrop-filter: blur(8px); }
+    .scheme-switch button { min-width: 58px; padding: 0 12px; border: 0; border-radius: 14px; background: transparent; color: #777; font: 13px/26px "PingFang SC", "Microsoft YaHei", sans-serif; cursor: pointer; }
+    .scheme-switch button.is-active { background: #fff; color: #f64b8a; box-shadow: 0 2px 6px rgb(0 0 0 / 8%); font-weight: 600; }
     .quick-card { position: absolute; right: 12px; bottom: 91px; left: 12px; height: 142px; padding: 12px 12px 12px; border-radius: 19px; background: #fff; box-shadow: 0 0 20px rgb(0 0 0 / 8%); }
     .quick-card { transition: height 250ms ease; }
     .quick-card.is-restoring { transition: none; }
@@ -32,6 +35,13 @@
     .quick-card.is-mood.is-mood-visible .mood-panel { opacity: 1; pointer-events: auto; }
     .quick-card.is-mood.is-mood-visible .quick-list,
     .quick-card.is-mood.is-mood-visible > .voice-entry { opacity: 0; pointer-events: none; }
+    .mood-card { position: absolute; z-index: 1; right: 12px; bottom: 91px; left: 12px; height: 0; overflow: hidden; visibility: hidden; pointer-events: none; border-radius: 19px; background: #fff; box-shadow: 0 0 20px rgb(0 0 0 / 8%); transition: height 250ms ease; }
+    .mood-card .mood-panel { position: absolute; top: 2px; right: 12px; left: 12px; display: block; opacity: 0; pointer-events: none; transition: opacity 250ms ease; }
+    .mood-card.is-visible { height: 142px; visibility: visible; pointer-events: auto; }
+    .mood-card.is-visible .mood-panel { opacity: 1; pointer-events: auto; transition-delay: 100ms; }
+    .mood-card.is-closing { height: 0; pointer-events: none; }
+    .mood-card.is-closing .mood-panel { opacity: 0; transition-delay: 0ms; }
+    .mood-card.is-restoring { transition: none; }
     .symptom-card.is-visible { height: 250px; visibility: visible; pointer-events: auto; }
     .symptom-card.is-visible .symptom-panel { opacity: 1; transition-delay: 100ms; }
     .symptom-card.is-closing { height: 142px; pointer-events: none; }
@@ -94,7 +104,11 @@
   </style>
 </head>
 <body>
-  <main class="page">
+  <main class="page is-scheme-2">
+    <nav class="scheme-switch" aria-label="方案切换">
+      <button type="button" data-scheme="scheme-1">方案1</button>
+      <button class="is-active" type="button" data-scheme="scheme-2">方案2</button>
+    </nav>
     <section class="quick-card" aria-label="快捷记录">
       <div class="quick-list">
         <button class="quick-item menstrual-trigger" type="button"><span class="icon-shell"><img src="切图/月经感受.png" alt=""></span>月经感受</button>
@@ -139,6 +153,19 @@
         </div>
       </div>
     </section>
+    <section class="mood-card" aria-label="心情选择">
+      <div class="mood-panel">
+        <button class="mood-close" type="button" aria-label="关闭"></button>
+        <h2 class="mood-title">心情</h2>
+        <div class="mood-list">
+          <button class="mood-item" type="button"><img class="mood-icon" src="切图/心情/超开心.png" alt="">超开心</button>
+          <button class="mood-item" type="button"><img class="mood-icon" src="切图/心情/挺开心.png" alt="">挺开心</button>
+          <button class="mood-item" type="button"><img class="mood-icon" src="切图/心情/一般.png" alt="">一般</button>
+          <button class="mood-item" type="button"><img class="mood-icon" src="切图/心情/不开心.png" alt="">不开心</button>
+          <button class="mood-item" type="button"><img class="mood-icon" src="切图/心情/好伤心.png" alt="">好伤心</button>
+        </div>
+      </div>
+    </section>
     <section class="record-card" aria-label="语音录制">
       <p class="record-tip">松开发送，上滑取消</p>
       <button class="waveform" type="button" aria-label="结束录音">
@@ -148,13 +175,68 @@
     <img class="tabbar" src="切图/TabBar.png" alt="主导航">
   </main>
   <script>
+    const page = document.querySelector('.page');
     const quickCard = document.querySelector('.quick-card');
     const symptomCard = document.querySelector('.symptom-card');
+    const moodCard = document.querySelector('.mood-card');
     const recordCard = document.querySelector('.record-card');
     const voiceEntry = document.querySelector('.voice-entry');
     const voiceToggle = document.querySelector('.voice-toggle');
     const voiceLabel = document.querySelector('.voice-label');
+    const schemeButtons = document.querySelectorAll('.scheme-switch button');
     let recordOrigin = 'default';
+
+    function readSchemeState() {
+      return {
+        panel: quickCard.classList.contains('is-menstrual') ? 'menstrual' : quickCard.classList.contains('is-mood') || moodCard.classList.contains('is-visible') ? 'mood' : 'default',
+        voiceHoldToTalk: voiceEntry.classList.contains('is-hold-to-talk'),
+        symptomOpen: symptomCard.classList.contains('is-visible')
+      };
+    }
+
+    function applySchemeState(state) {
+      quickCard.classList.add('is-restoring');
+      quickCard.classList.remove('is-menstrual', 'is-mood', 'is-mood-visible', 'is-mood-leaving');
+      symptomCard.classList.remove('is-visible', 'is-closing');
+      moodCard.classList.remove('is-visible', 'is-closing', 'is-restoring');
+      recordCard.classList.remove('is-visible', 'is-closing', 'is-fading', 'is-static-height');
+      recordCard.style.removeProperty('--record-start-height');
+      recordOrigin = 'default';
+
+      voiceEntry.classList.toggle('is-hold-to-talk', state.voiceHoldToTalk);
+      voiceToggle.src = state.voiceHoldToTalk ? '切图/切换键盘.png' : '切图/切换语音.png';
+      voiceLabel.textContent = state.voiceHoldToTalk ? '按住说话' : '记录生活点滴';
+
+      if (state.panel === 'menstrual') quickCard.classList.add('is-menstrual');
+      if (state.panel === 'mood' && activeScheme === 'scheme-2') {
+        moodCard.classList.add('is-restoring', 'is-visible');
+        requestAnimationFrame(() => moodCard.classList.remove('is-restoring'));
+      }
+      if (state.panel === 'mood' && activeScheme !== 'scheme-2') quickCard.classList.add('is-mood', 'is-mood-visible');
+      if (state.symptomOpen) symptomCard.classList.add('is-visible');
+
+      requestAnimationFrame(() => quickCard.classList.remove('is-restoring'));
+    }
+
+    const firstSchemeState = readSchemeState();
+    const schemeStates = {
+      'scheme-1': firstSchemeState,
+      'scheme-2': { ...firstSchemeState }
+    };
+    let activeScheme = 'scheme-2';
+
+    schemeButtons.forEach((button) => {
+      button.addEventListener('click', () => {
+        const nextScheme = button.dataset.scheme;
+        if (nextScheme === activeScheme) return;
+        schemeStates[activeScheme] = readSchemeState();
+        activeScheme = nextScheme;
+        page.classList.toggle('is-scheme-2', activeScheme === 'scheme-2');
+        applySchemeState(schemeStates[activeScheme]);
+        schemeButtons.forEach((item) => item.classList.toggle('is-active', item === button));
+      });
+    });
+
     function openRecordPanel(origin = 'default') {
       recordOrigin = origin;
       const currentPanelHeight = quickCard.getBoundingClientRect().height;
@@ -204,16 +286,27 @@
       }, 150);
     });
     document.querySelector('.mood-trigger').addEventListener('click', () => {
+      if (activeScheme === 'scheme-2') {
+        moodCard.classList.remove('is-closing');
+        moodCard.classList.add('is-visible');
+        return;
+      }
       if (quickCard.classList.contains('is-mood')) return;
       quickCard.classList.add('is-mood');
-      // Keep both states in the DOM for one frame, then cross-fade them.
-      requestAnimationFrame(() => quickCard.classList.add('is-mood-visible'));
+      requestAnimationFrame(() => {
+        quickCard.classList.add('is-mood-visible');
+      });
     });
-    document.querySelector('.mood-close').addEventListener('click', () => {
+    quickCard.querySelector('.mood-close').addEventListener('click', () => {
       if (!quickCard.classList.contains('is-mood') || quickCard.classList.contains('is-mood-leaving')) return;
       quickCard.classList.add('is-mood-leaving');
       quickCard.classList.remove('is-mood-visible');
       window.setTimeout(() => quickCard.classList.remove('is-mood', 'is-mood-leaving'), 250);
+    });
+    moodCard.querySelector('.mood-close').addEventListener('click', () => {
+      if (moodCard.classList.contains('is-closing')) return;
+      moodCard.classList.add('is-closing');
+      window.setTimeout(() => moodCard.classList.remove('is-visible', 'is-closing'), 250);
     });
     document.querySelector('.symptom-trigger').addEventListener('click', () => {
       symptomCard.classList.remove('is-closing');
