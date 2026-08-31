@@ -64,7 +64,7 @@
     @keyframes agent-ambient-one { from { transform: translate3d(-5%, 4%, 0) rotate(-8deg) scale(1); } to { transform: translate3d(7%, -5%, 0) rotate(9deg) scale(1.12); } }
     @keyframes agent-ambient-two { from { transform: translate3d(8%, -4%, 0) rotate(8deg) scale(1.08); } to { transform: translate3d(-7%, 6%, 0) rotate(-10deg) scale(1); } }
     @media (prefers-reduced-motion: reduce) { .record-card.is-visible:not(.is-closing) .waveform span, .record-card.is-visible:not(.is-closing)::before, .record-card.is-visible:not(.is-closing)::after { animation: none; } }
-    .close-panel { position: absolute; top: 14px; right: 14px; width: 20px; height: 20px; padding: 0; border: 0; background: transparent; }
+    .close-panel { position: absolute; top: 14px; left: 14px; width: 20px; height: 20px; padding: 0; border: 0; background: transparent; }
     .close-panel::before,
     .close-panel::after { position: absolute; top: 9px; left: 0; width: 20px; height: 2px; background: #c8c8c8; content: ""; }
     .close-panel::before { transform: rotate(45deg); }.close-panel::after { transform: rotate(-45deg); }
@@ -73,7 +73,7 @@
     .hold-to-talk { position: absolute; right: 12px; bottom: 12px; left: 12px; height: 48px; display: flex; align-items: center; justify-content: center; gap: 8px; padding: 0; border: 1px solid #e0e0e0; border-radius: 24px; background: #fff; color: #323232; font: 600 17px "PingFang SC", "Microsoft YaHei", sans-serif; }
     .keyboard-icon { position: absolute; left: 12px; width: 26px; height: 26px; }
     .mood-title { display: flex; height: 40px; margin: 0; align-items: center; justify-content: center; color: #323232; font-size: 17px; font-weight: 500; line-height: 24px; text-align: center; }
-    .mood-close { position: absolute; top: 10px; right: 0; width: 20px; height: 20px; padding: 0; border: 0; background: transparent; }
+    .mood-close { position: absolute; top: 10px; left: 0; width: 20px; height: 20px; padding: 0; border: 0; background: transparent; }
     .mood-close::before,
     .mood-close::after { position: absolute; top: 9px; left: 0; width: 20px; height: 2px; background: #c8c8c8; content: ""; }
     .mood-close::before { transform: rotate(45deg); }.mood-close::after { transform: rotate(-45deg); }
@@ -81,7 +81,7 @@
     .mood-item { display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 0; border: 0; background: transparent; color: #323232; font: 15px/20px "PingFang SC", "Microsoft YaHei", sans-serif; white-space: nowrap; }
     .mood-icon { width: 40px; height: 40px; object-fit: contain; }
     .symptom-title { display: flex; height: 40px; margin: 0; align-items: center; justify-content: center; color: #323232; font-size: 17px; font-weight: 500; line-height: 24px; }
-    .symptom-close { position: absolute; top: 10px; right: 0; width: 20px; height: 20px; padding: 0; border: 0; background: transparent; }
+    .symptom-close { position: absolute; top: 10px; left: 0; width: 20px; height: 20px; padding: 0; border: 0; background: transparent; }
     .symptom-close::before,
     .symptom-close::after { position: absolute; top: 9px; left: 0; width: 20px; height: 2px; background: #c8c8c8; content: ""; }
     .symptom-close::before { transform: rotate(45deg); }.symptom-close::after { transform: rotate(-45deg); }
