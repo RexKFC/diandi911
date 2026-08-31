@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>点滴</title>
+  <style>
+    :root { --canvas: #f2f2f5; --ink: #303030; }
+    * { box-sizing: border-box; }
+    body { margin: 0; min-height: 100vh; display: flex; justify-content: center; background: #292929; color: var(--ink); font-family: "PingFang SC", "Microsoft YaHei", sans-serif; }
+    .page { position: relative; flex: 0 0 375px; width: 375px; min-width: 375px; height: 812px; min-height: 812px; overflow: hidden; background: var(--canvas); }
+    .quick-card { position: absolute; right: 12px; bottom: 91px; left: 12px; height: 142px; padding: 12px 12px 12px; border-radius: 19px; background: #fff; box-shadow: 0 0 20px rgb(0 0 0 / 8%); }
+    .quick-card { transition: height 250ms ease; }
+    .quick-card.is-restoring { transition: none; }
+    .quick-list { display: grid; grid-template-columns: repeat(5, 1fr); transition: opacity 250ms ease; }
+    .quick-item { display: flex; flex-direction: column; align-items: center; gap: 0; padding: 0; border: 0; background: transparent; color: #323232; font: 13px/16px "PingFang SC", "Microsoft YaHei", sans-serif; }
+    .icon-shell { display: flex; width: 40px; height: 40px; align-items: center; justify-content: center; }
+    .quick-item img { width: 26px; height: 26px; object-fit: contain; }
+    .voice-entry { position: absolute; right: 12px; bottom: 12px; left: 12px; height: 48px; display: flex; align-items: center; gap: 8px; padding: 0 12px; border: 1px solid #d8d8d8; border-radius: 24px; background: #fff; color: #ccc; font-size: 17px; transition: opacity 250ms ease; }
+    .voice-entry img { width: 26px; height: 26px; }
+    .voice-entry.is-hold-to-talk { justify-content: center; gap: 0; color: #323232; font-weight: 600; }
+    .voice-entry.is-hold-to-talk img { position: absolute; left: 12px; }
+    .menstrual-panel { display: none; }
+    .mood-panel { position: absolute; top: 2px; right: 12px; left: 12px; display: none; opacity: 0; pointer-events: none; transition: opacity 250ms ease; }
+    .symptom-card { position: absolute; z-index: 1; right: 12px; bottom: 91px; left: 12px; height: 142px; overflow: hidden; visibility: hidden; pointer-events: none; border-radius: 19px; background: #fff; box-shadow: 0 0 20px rgb(0 0 0 / 8%); transition: height 300ms ease; }
+    .symptom-panel { position: absolute; right: 12px; bottom: 44px; left: 12px; opacity: 0; transition: opacity 300ms ease; }
+    .quick-card.is-menstrual { height: 250px; }
+    .quick-card.is-menstrual .quick-list,
+    .quick-card.is-menstrual > .voice-entry { display: none; }
+    .quick-card.is-menstrual .menstrual-panel { display: block; }
+    .quick-card.is-mood .mood-panel { display: block; }
+    .quick-card.is-mood.is-mood-visible .mood-panel { opacity: 1; pointer-events: auto; }
+    .quick-card.is-mood.is-mood-visible .quick-list,
+    .quick-card.is-mood.is-mood-visible > .voice-entry { opacity: 0; pointer-events: none; }
+    .symptom-card.is-visible { height: 250px; visibility: visible; pointer-events: auto; }
+    .symptom-card.is-visible .symptom-panel { opacity: 1; transition-delay: 100ms; }
+    .symptom-card.is-closing { height: 142px; pointer-events: none; }
+    .symptom-card.is-closing .symptom-panel { opacity: 0; transition-delay: 0ms; }
+    .record-card { position: absolute; z-index: 2; right: 12px; bottom: 91px; left: 12px; height: var(--record-start-height, 142px); overflow: hidden; visibility: hidden; pointer-events: none; border-radius: 19px; background: linear-gradient(160deg, #fff 3%, #ffd8eb 46%, #ff8bc9 73%, #ff6fba 100%); opacity: 1; transition: height 300ms ease, opacity 300ms ease; }
+    .record-card::before,
+    .record-card::after { position: absolute; inset: -45%; z-index: 0; content: ""; filter: blur(18px); }
+    .record-card::before { background: radial-gradient(circle at 48% 72%, #ff89c4 0 15%, transparent 38%), radial-gradient(circle at 80% 25%, #ff7c7c 0 10%, transparent 28%), radial-gradient(circle at 16% 78%, #ff97e3 0 9%, transparent 25%); }
+    .record-card::after { background: radial-gradient(circle at 68% 72%, #ff97e3 0 11%, transparent 29%), radial-gradient(circle at 27% 56%, #ff7c7c 0 10%, transparent 28%); opacity: .68; }
+    .record-card.is-visible:not(.is-closing)::before { animation: agent-ambient-one 1.8s ease-in-out infinite alternate; }
+    .record-card.is-visible:not(.is-closing)::after { animation: agent-ambient-two 2.3s ease-in-out infinite alternate; }
+    .record-card > * { z-index: 1; opacity: 0; transition: opacity 300ms ease; }
+    .record-card.is-visible { height: 250px; visibility: visible; pointer-events: auto; }
+    .record-card.is-static-height { transition-property: opacity; }
+    .record-card.is-visible > * { opacity: 1; transition-delay: 100ms; }
+    .record-card.is-closing { height: var(--record-start-height, 142px); pointer-events: none; transition-duration: 150ms, 150ms; }
+    .record-card.is-closing > * { opacity: 0; transition-delay: 0ms; }
+    .record-card.is-fading { opacity: 0; }
+    .record-tip { position: absolute; right: 0; bottom: 106px; left: 0; margin: 0; color: #fff; font-size: 13px; line-height: 24px; text-align: center; }
+    .waveform { position: absolute; right: 36px; bottom: 16px; left: 36px; display: flex; height: 40px; align-items: center; justify-content: space-between; padding: 0; border: 0; background: transparent; cursor: pointer; }
+    .waveform span { width: 5px; height: clamp(8px, var(--bar-height), 20px) !important; border-radius: 3px; background: #fff; }
+    .waveform span:nth-child(1),
+    .waveform span:nth-child(28) { height: 8px !important; }
+    .record-card.is-visible:not(.is-closing) .waveform span { animation: voice-wave 700ms ease-in-out infinite alternate; transform-origin: center; will-change: transform; }
+    .record-card.is-visible:not(.is-closing) .waveform span:nth-child(4n + 1) { animation-delay: -420ms; }
+    .record-card.is-visible:not(.is-closing) .waveform span:nth-child(4n + 2) { animation-delay: -180ms; }
+    .record-card.is-visible:not(.is-closing) .waveform span:nth-child(4n + 3) { animation-delay: -560ms; }
+    .record-card.is-visible:not(.is-closing) .waveform span:nth-child(4n) { animation-delay: -80ms; }
+    @keyframes voice-wave { from { transform: scaleY(.45); } to { transform: scaleY(1); } }
+    @keyframes agent-ambient-one { from { transform: translate3d(-5%, 4%, 0) rotate(-8deg) scale(1); } to { transform: translate3d(7%, -5%, 0) rotate(9deg) scale(1.12); } }
+    @keyframes agent-ambient-two { from { transform: translate3d(8%, -4%, 0) rotate(8deg) scale(1.08); } to { transform: translate3d(-7%, 6%, 0) rotate(-10deg) scale(1); } }
+    @media (prefers-reduced-motion: reduce) { .record-card.is-visible:not(.is-closing) .waveform span, .record-card.is-visible:not(.is-closing)::before, .record-card.is-visible:not(.is-closing)::after { animation: none; } }
+    .close-panel { position: absolute; top: 14px; right: 14px; width: 20px; height: 20px; padding: 0; border: 0; background: transparent; }
+    .close-panel::before,
+    .close-panel::after { position: absolute; top: 9px; left: 0; width: 20px; height: 2px; background: #c8c8c8; content: ""; }
+    .close-panel::before { transform: rotate(45deg); }.close-panel::after { transform: rotate(-45deg); }
+    .menstrual-guide { position: absolute; top: 82px; right: 0; left: 0; display: flex; flex-direction: column; align-items: center; gap: 8px; text-align: center; color: #666; font-size: 16px; line-height: 1; }
+    .menstrual-guide p { margin: 0; }.menstrual-guide strong { color: #323232; font-size: 17px; font-weight: 600; }
+    .hold-to-talk { position: absolute; right: 12px; bottom: 12px; left: 12px; height: 48px; display: flex; align-items: center; justify-content: center; gap: 8px; padding: 0; border: 1px solid #e0e0e0; border-radius: 24px; background: #fff; color: #323232; font: 600 17px "PingFang SC", "Microsoft YaHei", sans-serif; }
+    .keyboard-icon { position: absolute; left: 12px; width: 26px; height: 26px; }
+    .mood-title { display: flex; height: 40px; margin: 0; align-items: center; justify-content: center; color: #323232; font-size: 17px; font-weight: 500; line-height: 24px; text-align: center; }
+    .mood-close { position: absolute; top: 10px; right: 0; width: 20px; height: 20px; padding: 0; border: 0; background: transparent; }
+    .mood-close::before,
+    .mood-close::after { position: absolute; top: 9px; left: 0; width: 20px; height: 2px; background: #c8c8c8; content: ""; }
+    .mood-close::before { transform: rotate(45deg); }.mood-close::after { transform: rotate(-45deg); }
+    .mood-list { display: grid; grid-template-columns: repeat(5, 1fr); margin-top: 12px; }
+    .mood-item { display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 0; border: 0; background: transparent; color: #323232; font: 15px/20px "PingFang SC", "Microsoft YaHei", sans-serif; white-space: nowrap; }
+    .mood-icon { width: 40px; height: 40px; object-fit: contain; }
+    .symptom-title { display: flex; height: 40px; margin: 0; align-items: center; justify-content: center; color: #323232; font-size: 17px; font-weight: 500; line-height: 24px; }
+    .symptom-close { position: absolute; top: 10px; right: 0; width: 20px; height: 20px; padding: 0; border: 0; background: transparent; }
+    .symptom-close::before,
+    .symptom-close::after { position: absolute; top: 9px; left: 0; width: 20px; height: 2px; background: #c8c8c8; content: ""; }
+    .symptom-close::before { transform: rotate(45deg); }.symptom-close::after { transform: rotate(-45deg); }
+    .symptom-list { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px 0; margin-top: 12px; }
+    .symptom-item { display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 0; border: 0; background: transparent; color: #323232; font: 15px/20px "PingFang SC", "Microsoft YaHei", sans-serif; white-space: nowrap; }
+    .symptom-icon { width: 40px; height: 40px; object-fit: contain; }
+    .symptom-item:nth-child(-n + 5) { transform: translateY(2px); }
+    .symptom-item:nth-child(n + 6) { transform: translateY(7px); }
+    .tabbar { position: absolute; bottom: 0; left: 0; width: 375px; height: 83px; object-fit: contain; background: #fff; }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <section class="quick-card" aria-label="快捷记录">
+      <div class="quick-list">
+        <button class="quick-item menstrual-trigger" type="button"><span class="icon-shell"><img src="切图/月经感受.png" alt=""></span>月经感受</button>
+        <button class="quick-item symptom-trigger" type="button"><span class="icon-shell"><img src="切图/症状.png" alt=""></span>症状</button>
+        <button class="quick-item" type="button"><span class="icon-shell"><img src="切图/体重.png" alt=""></span>体重</button>
+        <button class="quick-item mood-trigger" type="button"><span class="icon-shell"><img src="切图/心情.png" alt=""></span>心情</button>
+        <button class="quick-item" type="button"><span class="icon-shell"><img src="切图/饮食.png" alt=""></span>饮食</button>
+      </div>
+      <div class="voice-entry"><img class="voice-toggle" src="切图/切换语音.png" alt=""><span class="voice-label">记录生活点滴</span></div>
+      <div class="menstrual-panel" aria-label="月经感受记录">
+        <button class="close-panel" type="button" aria-label="关闭"></button>
+        <div class="menstrual-guide"><p>你可以试试这么说</p><strong>“今天流量特别大”</strong></div>
+        <button class="hold-to-talk" type="button"><img class="keyboard-icon" src="切图/切换键盘.png" alt="">按住说话</button>
+      </div>
+      <div class="mood-panel" aria-label="心情选择">
+        <button class="mood-close" type="button" aria-label="关闭"></button>
+        <h2 class="mood-title">心情</h2>
+        <div class="mood-list">
+          <button class="mood-item" type="button"><img class="mood-icon" src="切图/心情/超开心.png" alt="">超开心</button>
+          <button class="mood-item" type="button"><img class="mood-icon" src="切图/心情/挺开心.png" alt="">挺开心</button>
+          <button class="mood-item" type="button"><img class="mood-icon" src="切图/心情/一般.png" alt="">一般</button>
+          <button class="mood-item" type="button"><img class="mood-icon" src="切图/心情/不开心.png" alt="">不开心</button>
+          <button class="mood-item" type="button"><img class="mood-icon" src="切图/心情/好伤心.png" alt="">好伤心</button>
+        </div>
+      </div>
+    </section>
+    <section class="symptom-card" aria-label="症状选择">
+      <div class="symptom-panel">
+        <button class="symptom-close" type="button" aria-label="关闭"></button>
+        <h2 class="symptom-title">症状</h2>
+        <div class="symptom-list">
+          <button class="symptom-item" type="button"><img class="symptom-icon" src="切图/症状/头痛.png" alt="">头痛</button>
+          <button class="symptom-item" type="button"><img class="symptom-icon" src="切图/症状/呕吐.png" alt="">呕吐</button>
+          <button class="symptom-item" type="button"><img class="symptom-icon" src="切图/症状/出冷汗.png" alt="">出冷汗</button>
+          <button class="symptom-item" type="button"><img class="symptom-icon" src="切图/症状/贪冷饮.png" alt="">贪冷饮</button>
+          <button class="symptom-item" type="button"><img class="symptom-icon" src="切图/症状/失眠.png" alt="">失眠</button>
+          <button class="symptom-item" type="button"><img class="symptom-icon" src="切图/症状/感冒.png" alt="">感冒</button>
+          <button class="symptom-item" type="button"><img class="symptom-icon" src="切图/症状/发烧.png" alt="">发烧</button>
+          <button class="symptom-item" type="button"><img class="symptom-icon" src="切图/症状/腹痛明显.png" alt="">腹痛明显</button>
+          <button class="symptom-item" type="button"><img class="symptom-icon" src="切图/症状/腹痛难忍.png" alt="">腹痛难忍</button>
+          <button class="symptom-item" type="button"><img class="symptom-icon" src="切图/症状/腹泻.png" alt="">腹泻</button>
+        </div>
+      </div>
+    </section>
+    <section class="record-card" aria-label="语音录制">
+      <p class="record-tip">松开发送，上滑取消</p>
+      <button class="waveform" type="button" aria-label="结束录音">
+        <span style="--bar-height: 10px"></span><span style="--bar-height: 30px"></span><span style="--bar-height: 38px"></span><span style="--bar-height: 34px"></span><span style="--bar-height: 18px"></span><span style="--bar-height: 12px"></span><span style="--bar-height: 18px"></span><span style="--bar-height: 31px"></span><span style="--bar-height: 39px"></span><span style="--bar-height: 34px"></span><span style="--bar-height: 16px"></span><span style="--bar-height: 25px"></span><span style="--bar-height: 35px"></span><span style="--bar-height: 31px"></span><span style="--bar-height: 39px"></span><span style="--bar-height: 19px"></span><span style="--bar-height: 25px"></span><span style="--bar-height: 18px"></span><span style="--bar-height: 14px"></span><span style="--bar-height: 22px"></span><span style="--bar-height: 37px"></span><span style="--bar-height: 32px"></span><span style="--bar-height: 28px"></span><span style="--bar-height: 16px"></span><span style="--bar-height: 35px"></span><span style="--bar-height: 39px"></span><span style="--bar-height: 28px"></span><span style="--bar-height: 12px"></span><span style="--bar-height: 22px"></span><span style="--bar-height: 37px"></span><span style="--bar-height: 32px"></span><span style="--bar-height: 20px"></span>
+      </button>
+    </section>
+    <img class="tabbar" src="切图/TabBar.png" alt="主导航">
+  </main>
+  <script>
+    const quickCard = document.querySelector('.quick-card');
+    const symptomCard = document.querySelector('.symptom-card');
+    const recordCard = document.querySelector('.record-card');
+    const voiceEntry = document.querySelector('.voice-entry');
+    const voiceToggle = document.querySelector('.voice-toggle');
+    const voiceLabel = document.querySelector('.voice-label');
+    let recordOrigin = 'default';
+    function openRecordPanel(origin = 'default') {
+      recordOrigin = origin;
+      const currentPanelHeight = quickCard.getBoundingClientRect().height;
+      recordCard.style.setProperty('--record-start-height', `${currentPanelHeight}px`);
+      recordCard.classList.toggle('is-static-height', Math.abs(currentPanelHeight - 250) < .5);
+      recordCard.classList.remove('is-closing', 'is-fading');
+      // Commit the measured height before revealing the panel to avoid a stale 142px transition.
+      void recordCard.offsetHeight;
+      recordCard.classList.add('is-visible');
+    }
+    document.querySelector('.menstrual-trigger').addEventListener('click', () => quickCard.classList.add('is-menstrual'));
+    document.querySelector('.close-panel').addEventListener('click', () => quickCard.classList.remove('is-menstrual'));
+    document.querySelector('.keyboard-icon').addEventListener('click', () => quickCard.classList.remove('is-menstrual'));
+    voiceToggle.addEventListener('click', () => {
+      const isHoldToTalk = voiceEntry.classList.toggle('is-hold-to-talk');
+      voiceToggle.src = isHoldToTalk ? '切图/切换键盘.png' : '切图/切换语音.png';
+      voiceLabel.textContent = isHoldToTalk ? '按住说话' : '记录生活点滴';
+    });
+    voiceEntry.addEventListener('click', (event) => {
+      if (!voiceEntry.classList.contains('is-hold-to-talk') || event.target.closest('.voice-toggle')) return;
+      openRecordPanel();
+    });
+    document.querySelector('.hold-to-talk').addEventListener('click', (event) => {
+      if (event.target.closest('.keyboard-icon')) return;
+      openRecordPanel('menstrual');
+    });
+    document.querySelector('.waveform').addEventListener('click', () => {
+      if (recordCard.classList.contains('is-closing') || recordCard.classList.contains('is-fading')) return;
+      if (recordOrigin === 'menstrual') {
+        quickCard.classList.add('is-restoring');
+        quickCard.classList.remove('is-menstrual');
+        voiceEntry.classList.add('is-hold-to-talk');
+        voiceToggle.src = '切图/切换键盘.png';
+        voiceLabel.textContent = '按住说话';
+        recordCard.classList.remove('is-static-height');
+        recordCard.style.setProperty('--record-start-height', '142px');
+      }
+      recordCard.classList.add('is-closing');
+      window.setTimeout(() => {
+        recordCard.classList.add('is-fading');
+        window.setTimeout(() => {
+          recordCard.classList.remove('is-visible', 'is-closing', 'is-fading', 'is-static-height');
+          recordCard.style.removeProperty('--record-start-height');
+          quickCard.classList.remove('is-restoring');
+          recordOrigin = 'default';
+        }, 150);
+      }, 150);
+    });
+    document.querySelector('.mood-trigger').addEventListener('click', () => {
+      if (quickCard.classList.contains('is-mood')) return;
+      quickCard.classList.add('is-mood');
+      // Keep both states in the DOM for one frame, then cross-fade them.
+      requestAnimationFrame(() => quickCard.classList.add('is-mood-visible'));
+    });
+    document.querySelector('.mood-close').addEventListener('click', () => {
+      if (!quickCard.classList.contains('is-mood') || quickCard.classList.contains('is-mood-leaving')) return;
+      quickCard.classList.add('is-mood-leaving');
+      quickCard.classList.remove('is-mood-visible');
+      window.setTimeout(() => quickCard.classList.remove('is-mood', 'is-mood-leaving'), 250);
+    });
+    document.querySelector('.symptom-trigger').addEventListener('click', () => {
+      symptomCard.classList.remove('is-closing');
+      symptomCard.classList.add('is-visible');
+    });
+    document.querySelector('.symptom-close').addEventListener('click', () => {
+      if (symptomCard.classList.contains('is-closing')) return;
+      symptomCard.classList.add('is-closing');
+      window.setTimeout(() => symptomCard.classList.remove('is-visible', 'is-closing'), 300);
+    });
+  </script>
+</body>
+</html>
