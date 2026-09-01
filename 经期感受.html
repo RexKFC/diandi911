@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>经期感受</title>
+  <style>
+    :root {
+      --page-bg: #f5f5f8;
+      --card-bg: #ffffff;
+      --text-main: #303030;
+      --text-muted: #d3d3d6;
+      --stroke: #d9d9dd;
+      --shadow: 0 10px 28px rgb(34 34 34 / 8%);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      margin: 0;
+      min-height: 100%;
+      background: #2c2c2c;
+      font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
+    }
+
+    body {
+      display: flex;
+      justify-content: center;
+      padding: 0;
+    }
+
+    .screen {
+      position: relative;
+      flex: 0 0 375px;
+      width: 375px;
+      min-width: 375px;
+      height: 812px;
+      min-height: 812px;
+      overflow: hidden;
+      background: var(--page-bg);
+    }
+
+    .stage {
+      height: 100%;
+      background: linear-gradient(180deg, #f7f7fa 0%, #f4f4f7 100%);
+    }
+
+    .scheme-switch {
+      position: absolute;
+      z-index: 3;
+      top: 24px;
+      left: 50%;
+      display: flex;
+      padding: 3px;
+      border: 1px solid #e7e7eb;
+      border-radius: 18px;
+      background: rgb(255 255 255 / 88%);
+      box-shadow: 0 4px 12px rgb(0 0 0 / 5%);
+      transform: translateX(-50%);
+    }
+
+    .scheme-switch button {
+      min-width: 62px;
+      height: 30px;
+      padding: 0 12px;
+      border: 0;
+      border-radius: 15px;
+      background: transparent;
+      color: #8c8c92;
+      font: 13px/30px "PingFang SC", "Microsoft YaHei", sans-serif;
+      cursor: pointer;
+    }
+
+    .scheme-switch button[aria-pressed="true"] {
+      background: #ff5b99;
+      color: #fff;
+      box-shadow: 0 2px 6px rgb(255 91 153 / 30%);
+    }
+
+    .quick-card {
+      position: absolute;
+      right: 12px;
+      bottom: 91px;
+      left: 12px;
+      height: 142px;
+      padding: 12px;
+      border-radius: 19px;
+      background: var(--card-bg);
+      box-shadow: 0 0 20px rgb(0 0 0 / 8%);
+    }
+
+    .guide-bubble {
+      position: absolute;
+      z-index: 2;
+      right: 84px;
+      bottom: 233px;
+      left: 12px;
+      padding: 12px 14px;
+      border-radius: 14px;
+      background: rgb(55 55 55 / 78%);
+      color: #fff;
+      font-size: 15px;
+      font-weight: 300;
+      line-height: 22px;
+      letter-spacing: 0.01em;
+    }
+
+    .guide-bubble::after {
+      position: absolute;
+      bottom: -9px;
+      left: 35px;
+      width: 0;
+      height: 0;
+      border-top: 10px solid rgb(55 55 55 / 78%);
+      border-right: 10px solid transparent;
+      border-left: 10px solid transparent;
+      content: "";
+    }
+
+    .quick-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 0;
+    }
+
+    .quick-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      color: var(--text-main);
+      font-size: 13px;
+      line-height: 16px;
+      text-align: center;
+      white-space: nowrap;
+    }
+
+    .quick-item img {
+      width: 26px;
+      height: 26px;
+      margin: 7px 0;
+      object-fit: contain;
+    }
+
+    .menstrual-guide {
+      position: relative;
+      cursor: pointer;
+    }
+
+    .guide-icon {
+      position: relative;
+      z-index: 1;
+      animation: menstrual-icon-guide 2.5s ease-in-out infinite;
+      will-change: transform;
+    }
+
+    .guide-halo {
+      display: none;
+      position: absolute !important;
+      z-index: 0;
+      top: -4px;
+      left: 50%;
+      width: 48px !important;
+      height: 48px !important;
+      margin: 0 !important;
+      pointer-events: none;
+    }
+
+    .menstrual-guide::before,
+    .menstrual-guide::after {
+      position: absolute;
+      top: 4px;
+      left: 50%;
+      width: 28px;
+      height: 28px;
+      padding: 1.5px;
+      border: 0;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #ffdbe7, #feddfa);
+      content: "";
+      opacity: 0;
+      transform: translateX(-50%) scale(.9286);
+      animation: menstrual-guide-ring 2.5s ease-out infinite;
+      -webkit-mask:
+        linear-gradient(#000 0 0) content-box,
+        linear-gradient(#000 0 0);
+      -webkit-mask-composite: xor;
+      mask-composite: exclude;
+      pointer-events: none;
+    }
+
+    .menstrual-guide::before {
+      animation: menstrual-guide-ring 2.5s ease-out infinite 300ms;
+    }
+
+    @keyframes menstrual-icon-guide {
+      0%,
+      100% { transform: translateY(0) scale(1); }
+      20% { transform: translateY(-3px) scale(1.08); }
+      36% { transform: translateY(0) scale(0.98); }
+      52% { transform: translateY(-1px) scale(1.03); }
+      65% { transform: translateY(0) scale(1); }
+    }
+
+    @keyframes menstrual-guide-ring {
+      0% { opacity: 1; transform: translateX(-50%) scale(.9286); }
+      48% { opacity: 0; transform: translateX(-50%) scale(1.5714); }
+      100% { opacity: 0; transform: translateX(-50%) scale(1.5714); }
+    }
+
+    .scheme-two .guide-icon {
+      animation: none;
+    }
+
+    .scheme-two .menstrual-guide::before,
+    .scheme-two .menstrual-guide::after {
+      animation: none;
+      opacity: 0;
+    }
+
+    .scheme-two .guide-halo {
+      display: block;
+      animation: menstrual-halo-rotate 2.1s linear infinite;
+      will-change: transform;
+    }
+
+    @keyframes menstrual-halo-rotate {
+      0% { opacity: 0; transform: translateX(-50%) rotate(0deg); }
+      50% { opacity: 1; transform: translateX(-50%) rotate(180deg); }
+      100% { opacity: 0; transform: translateX(-50%) rotate(360deg); }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .guide-icon,
+      .menstrual-guide::before,
+      .menstrual-guide::after,
+      .scheme-two .guide-halo {
+        animation: none;
+      }
+    }
+
+    .voice-entry {
+      position: absolute;
+      right: 12px;
+      bottom: 12px;
+      left: 12px;
+      display: flex;
+      align-items: center;
+      height: 48px;
+      padding: 0 12px;
+      border: 1px solid var(--stroke);
+      border-radius: 24px;
+      background: #fff;
+    }
+
+    .voice-entry img {
+      width: 26px;
+      height: 26px;
+      margin-right: 8px;
+      object-fit: contain;
+      opacity: 0.95;
+    }
+
+    .voice-entry span {
+      color: var(--text-muted);
+      font-size: 17px;
+      line-height: 1;
+      font-weight: 500;
+      letter-spacing: 0.02em;
+    }
+
+    .tabbar {
+      position: absolute;
+      right: 0;
+      bottom: 0;
+      left: 0;
+      display: block;
+      width: 100%;
+      height: 83px;
+      object-fit: contain;
+      background: #fff;
+    }
+  </style>
+</head>
+<body>
+  <main class="screen" aria-label="经期感受页面">
+    <div class="stage" aria-hidden="true"></div>
+
+    <div class="scheme-switch" role="group" aria-label="引导动效方案">
+      <button type="button" data-scheme="one" aria-pressed="true">方案1</button>
+      <button type="button" data-scheme="two" aria-pressed="false">方案2</button>
+    </div>
+
+    <section class="quick-card" aria-label="快捷记录">
+      <div class="quick-grid">
+        <div class="quick-item menstrual-guide" role="button" tabindex="0" aria-label="记录月经感受">
+          <img class="guide-halo" src="./切图/光晕.png" alt="">
+          <img class="guide-icon" src="./切图/月经感受.png" alt="">
+          <span>月经感受</span>
+        </div>
+        <div class="quick-item">
+          <img src="./切图/症状.png" alt="">
+          <span>症状</span>
+        </div>
+        <div class="quick-item">
+          <img src="./切图/体重.png" alt="">
+          <span>体重</span>
+        </div>
+        <div class="quick-item">
+          <img src="./切图/心情.png" alt="">
+          <span>心情</span>
+        </div>
+        <div class="quick-item">
+          <img src="./切图/饮食.png" alt="">
+          <span>饮食</span>
+        </div>
+      </div>
+
+      <div class="voice-entry" aria-label="记录生活点滴">
+        <img src="./切图/切换语音.png" alt="">
+        <span>记录生活点滴</span>
+      </div>
+    </section>
+
+    <aside class="guide-bubble" aria-label="功能引导">
+      血量变化、经期症状，都能帮你快速记下来，立刻试试吧
+    </aside>
+
+    <img class="tabbar" src="./切图/TabBar.png" alt="底部导航">
+  </main>
+  <script>
+    const screen = document.querySelector('.screen');
+    const schemeButtons = document.querySelectorAll('[data-scheme]');
+
+    schemeButtons.forEach((button) => {
+      button.addEventListener('click', () => {
+        const isSchemeTwo = button.dataset.scheme === 'two';
+        screen.classList.toggle('scheme-two', isSchemeTwo);
+        schemeButtons.forEach((item) => {
+          item.setAttribute('aria-pressed', String(item === button));
+        });
+      });
+    });
+  </script>
+</body>
+</html>
