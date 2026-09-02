@@ -82,6 +82,39 @@
       box-shadow: 0 2px 6px rgb(255 91 153 / 30%);
     }
 
+    .scheme-switch {
+      position: absolute;
+      z-index: 3;
+      top: 62px;
+      left: 50%;
+      display: flex;
+      padding: 3px;
+      border: 1px solid #e7e7eb;
+      border-radius: 18px;
+      background: rgb(255 255 255 / 88%);
+      box-shadow: 0 4px 12px rgb(0 0 0 / 5%);
+      transform: translateX(-50%);
+    }
+
+    .scheme-switch button {
+      min-width: 62px;
+      height: 30px;
+      padding: 0 12px;
+      border: 0;
+      border-radius: 15px;
+      background: transparent;
+      color: #8c8c92;
+      font: 13px/30px "PingFang SC", "Microsoft YaHei", sans-serif;
+      white-space: nowrap;
+      cursor: pointer;
+    }
+
+    .scheme-switch button[aria-pressed="true"] {
+      background: #ff5b99;
+      color: #fff;
+      box-shadow: 0 2px 6px rgb(255 91 153 / 30%);
+    }
+
     .quick-card {
       position: absolute;
       right: 12px;
@@ -212,20 +245,36 @@
       100% { opacity: 0; transform: translateX(-50%) scale(1.5714); }
     }
 
-    .scheme-two .guide-icon {
+    .scheme-one .guide-icon {
       animation: none;
+    }
+
+    .scheme-one .menstrual-guide::before,
+    .scheme-one .menstrual-guide::after {
+      animation: none;
+      opacity: 0;
+    }
+
+    .scheme-one .guide-halo {
+      display: block;
+      animation: menstrual-halo-rotate 2.5s linear infinite;
+      will-change: transform;
+    }
+
+    .scheme-two .guide-icon {
+      animation: menstrual-icon-sync 2.5s ease-in-out infinite;
+    }
+
+    .scheme-two .guide-halo {
+      display: block;
+      animation: menstrual-halo-sync 2.5s linear infinite;
+      will-change: transform;
     }
 
     .scheme-two .menstrual-guide::before,
     .scheme-two .menstrual-guide::after {
       animation: none;
       opacity: 0;
-    }
-
-    .scheme-two .guide-halo {
-      display: block;
-      animation: menstrual-halo-rotate 2.5s linear infinite;
-      will-change: transform;
     }
 
     .experiment-two .menstrual-guide .guide-icon,
@@ -251,11 +300,33 @@
       100% { opacity: 0; transform: translateX(-50%) rotate(360deg); }
     }
 
+    @keyframes menstrual-icon-sync {
+      0%,
+      100% { transform: scale(1); }
+      16% { transform: scale(1.1); }
+      32% { transform: scale(1); }
+      48% { transform: scale(1.1); }
+      64% { transform: scale(1); }
+    }
+
+    @keyframes menstrual-halo-sync {
+      0% { opacity: 0; transform: translateX(-50%) rotate(0deg) scale(1); }
+      16% { transform: translateX(-50%) rotate(90deg) scale(1.1); }
+      32% { opacity: 1; transform: translateX(-50%) rotate(180deg) scale(1); }
+      48% { transform: translateX(-50%) rotate(270deg) scale(1.1); }
+      64% { opacity: 0; transform: translateX(-50%) rotate(360deg) scale(1); }
+      100% { opacity: 0; transform: translateX(-50%) rotate(360deg) scale(1); }
+    }
+
+    .experiment-two .scheme-switch {
+      display: none;
+    }
+
     @media (prefers-reduced-motion: reduce) {
       .guide-icon,
       .menstrual-guide::before,
       .menstrual-guide::after,
-      .scheme-two .guide-halo {
+      .scheme-one .guide-halo {
         animation: none;
       }
     }
@@ -324,12 +395,17 @@
   </style>
 </head>
 <body>
-  <main class="screen experiment-one scheme-two" aria-label="经期感受页面">
+  <main class="screen experiment-one scheme-one" aria-label="经期感受页面">
     <div class="stage" aria-hidden="true"></div>
 
     <div class="experiment-switch" role="group" aria-label="实验组切换">
       <button type="button" data-experiment="one" aria-pressed="true">实验组1</button>
       <button type="button" data-experiment="two" aria-pressed="false">实验组2(设计中)</button>
+    </div>
+
+    <div class="scheme-switch" role="group" aria-label="方案切换">
+      <button type="button" data-scheme="one" aria-pressed="true">方案1</button>
+      <button type="button" data-scheme="two" aria-pressed="false">方案2</button>
     </div>
 
     <section class="quick-card" aria-label="快捷记录">
@@ -372,6 +448,7 @@
   <script>
     const screen = document.querySelector('.screen');
     const experimentButtons = document.querySelectorAll('[data-experiment]');
+    const schemeButtons = document.querySelectorAll('[data-scheme]');
     const voiceEntry = document.querySelector('.voice-entry');
     const voiceToggle = document.querySelector('.voice-toggle');
     const voiceLabel = document.querySelector('.voice-label');
@@ -398,6 +475,17 @@
         screen.classList.toggle('experiment-two', isExperimentTwo);
         screen.classList.toggle('experiment-one', !isExperimentTwo);
         experimentButtons.forEach((item) => {
+          item.setAttribute('aria-pressed', String(item === button));
+        });
+      });
+    });
+
+    schemeButtons.forEach((button) => {
+      button.addEventListener('click', () => {
+        const isSchemeTwo = button.dataset.scheme === 'two';
+        screen.classList.toggle('scheme-two', isSchemeTwo);
+        screen.classList.toggle('scheme-one', !isSchemeTwo);
+        schemeButtons.forEach((item) => {
           item.setAttribute('aria-pressed', String(item === button));
         });
       });
