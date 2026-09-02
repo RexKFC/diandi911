@@ -48,10 +48,10 @@
       background: linear-gradient(180deg, #f7f7fa 0%, #f4f4f7 100%);
     }
 
+    .experiment-switch,
     .scheme-switch {
       position: absolute;
       z-index: 3;
-      top: 24px;
       left: 50%;
       display: flex;
       padding: 3px;
@@ -62,6 +62,15 @@
       transform: translateX(-50%);
     }
 
+    .experiment-switch {
+      top: 18px;
+    }
+
+    .scheme-switch {
+      top: 62px;
+    }
+
+    .experiment-switch button,
     .scheme-switch button {
       min-width: 62px;
       height: 30px;
@@ -74,6 +83,7 @@
       cursor: pointer;
     }
 
+    .experiment-switch button[aria-pressed="true"],
     .scheme-switch button[aria-pressed="true"] {
       background: #ff5b99;
       color: #fff;
@@ -186,14 +196,9 @@
     .guide-bars i {
       display: block;
       width: 2.5px;
-      height: 8px;
+      height: 10px;
       border-radius: 4px;
       background: linear-gradient(180deg, #fff 0%, #ffcfe0 100%);
-    }
-
-    .guide-bars i:nth-child(2) {
-      width: 2.5px;
-      height: 10px;
     }
 
     .guide-halo {
@@ -238,7 +243,7 @@
     @keyframes menstrual-icon-guide {
       0%,
       100% { transform: scale(1); }
-      20% { transform: scale(1.15); }
+      20% { transform: scale(1.1); }
       36% { transform: scale(0.98); }
       52% { transform: scale(1.03); }
       65% { transform: scale(1); }
@@ -260,27 +265,26 @@
     }
 
     .scheme-two .guide-bars i {
-      animation: guide-bar-pulse 2.1s ease-in-out infinite;
+      animation: guide-bar-pulse 2.5s ease-in-out infinite;
       transform-origin: center;
       will-change: transform;
     }
 
-    .scheme-two .guide-bars i:nth-child(1) {
-      animation-delay: -220ms;
-    }
-
     .scheme-two .guide-bars i:nth-child(2) {
-      animation-delay: -420ms;
+      animation-delay: 220ms;
     }
 
     .scheme-two .guide-bars i:nth-child(3) {
-      animation-delay: -620ms;
+      animation-delay: 440ms;
     }
 
     @keyframes guide-bar-pulse {
       0%,
-      100% { opacity: .72; transform: scaleY(.72); }
-      50% { opacity: 1; transform: scaleY(1.2); }
+      40%,
+      68%,
+      100% { opacity: .72; transform: scaleY(.5); }
+      20%,
+      60% { opacity: 1; transform: scaleY(1); }
     }
 
     .scheme-two .menstrual-guide::before,
@@ -291,8 +295,30 @@
 
     .scheme-two .guide-halo {
       display: block;
-      animation: menstrual-halo-rotate 2.1s linear infinite;
+      animation: menstrual-halo-rotate 2.5s linear infinite;
       will-change: transform;
+    }
+
+    .experiment-two .menstrual-guide .guide-icon,
+    .experiment-two .menstrual-guide .scheme-two-icon,
+    .experiment-two .menstrual-guide .guide-halo,
+    .experiment-two .menstrual-guide::before,
+    .experiment-two .menstrual-guide::after,
+    .experiment-two .guide-bubble {
+      display: none;
+      animation: none;
+    }
+
+    .experiment-two .menstrual-guide {
+      display: none;
+    }
+
+    .experiment-two .quick-grid {
+      grid-template-columns: repeat(4, 1fr);
+    }
+
+    .experiment-two .scheme-switch [data-scheme="two"] {
+      display: none;
     }
 
     @keyframes menstrual-halo-rotate {
@@ -325,6 +351,11 @@
       background: #fff;
     }
 
+    .voice-entry.is-hold-to-talk {
+      justify-content: center;
+      padding: 0;
+    }
+
     .voice-entry img {
       width: 26px;
       height: 26px;
@@ -333,12 +364,27 @@
       opacity: 0.95;
     }
 
+    .voice-toggle {
+      cursor: pointer;
+    }
+
+    .voice-entry.is-hold-to-talk .voice-toggle {
+      position: absolute;
+      left: 12px;
+      margin-right: 0;
+    }
+
     .voice-entry span {
       color: var(--text-muted);
       font-size: 17px;
       line-height: 1;
       font-weight: 500;
       letter-spacing: 0.02em;
+    }
+
+    .voice-entry.is-hold-to-talk .voice-label {
+      color: var(--text-main);
+      font-weight: 600;
     }
 
     .tabbar {
@@ -355,8 +401,13 @@
   </style>
 </head>
 <body>
-  <main class="screen scheme-two" aria-label="经期感受页面">
+  <main class="screen experiment-one scheme-two" aria-label="经期感受页面">
     <div class="stage" aria-hidden="true"></div>
+
+    <div class="experiment-switch" role="group" aria-label="实验组切换">
+      <button type="button" data-experiment="one" aria-pressed="true">实验组1</button>
+      <button type="button" data-experiment="two" aria-pressed="false">实验组2(设计中)</button>
+    </div>
 
     <div class="scheme-switch" role="group" aria-label="引导动效方案">
       <button type="button" data-scheme="one" aria-pressed="false">方案1</button>
@@ -393,8 +444,8 @@
       </div>
 
       <div class="voice-entry" aria-label="记录生活点滴">
-        <img src="./切图/切换语音.png" alt="">
-        <span>记录生活点滴</span>
+        <img class="voice-toggle" src="./切图/切换语音.png" alt="切换为语音输入" role="button" tabindex="0">
+        <span class="voice-label">记录生活点滴</span>
       </div>
     </section>
 
@@ -406,7 +457,44 @@
   </main>
   <script>
     const screen = document.querySelector('.screen');
+    const experimentButtons = document.querySelectorAll('[data-experiment]');
     const schemeButtons = document.querySelectorAll('[data-scheme]');
+    const voiceEntry = document.querySelector('.voice-entry');
+    const voiceToggle = document.querySelector('.voice-toggle');
+    const voiceLabel = document.querySelector('.voice-label');
+
+    function toggleVoiceMode() {
+      const isHoldToTalk = voiceEntry.classList.toggle('is-hold-to-talk');
+      voiceToggle.src = isHoldToTalk ? './切图/切换键盘.png' : './切图/切换语音.png';
+      voiceToggle.alt = isHoldToTalk ? '切换为文字输入' : '切换为语音输入';
+      voiceEntry.setAttribute('aria-label', isHoldToTalk ? '按住说话' : '记录生活点滴');
+      voiceLabel.textContent = isHoldToTalk ? '按住说话' : '记录生活点滴';
+    }
+
+    voiceToggle.addEventListener('click', toggleVoiceMode);
+    voiceToggle.addEventListener('keydown', (event) => {
+      if (event.key === 'Enter' || event.key === ' ') {
+        event.preventDefault();
+        toggleVoiceMode();
+      }
+    });
+
+    experimentButtons.forEach((button) => {
+      button.addEventListener('click', () => {
+        const isExperimentTwo = button.dataset.experiment === 'two';
+        screen.classList.toggle('experiment-two', isExperimentTwo);
+        screen.classList.toggle('experiment-one', !isExperimentTwo);
+        if (isExperimentTwo) {
+          screen.classList.remove('scheme-two');
+          schemeButtons.forEach((item) => {
+            item.setAttribute('aria-pressed', String(item.dataset.scheme === 'one'));
+          });
+        }
+        experimentButtons.forEach((item) => {
+          item.setAttribute('aria-pressed', String(item === button));
+        });
+      });
+    });
 
     schemeButtons.forEach((button) => {
       button.addEventListener('click', () => {
