@@ -96,6 +96,10 @@
       transform: translateX(-50%);
     }
 
+    .scheme-switch[hidden] {
+      display: none;
+    }
+
     .scheme-switch button {
       min-width: 62px;
       height: 30px;
@@ -403,7 +407,7 @@
       <button type="button" data-experiment="two" aria-pressed="false">实验组2(设计中)</button>
     </div>
 
-    <div class="scheme-switch" role="group" aria-label="方案切换">
+    <div class="scheme-switch" role="group" aria-label="方案切换" hidden>
       <button type="button" data-scheme="one" aria-pressed="true">方案1</button>
       <button type="button" data-scheme="two" aria-pressed="false">方案2</button>
     </div>
