@@ -35,11 +35,13 @@
     .quick-card.is-mood.is-mood-visible .mood-panel { opacity: 1; pointer-events: auto; }
     .quick-card.is-mood.is-mood-visible .quick-list,
     .quick-card.is-mood.is-mood-visible > .voice-entry { opacity: 0; pointer-events: none; }
-    .mood-card { position: absolute; z-index: 1; right: 12px; bottom: 91px; left: 12px; height: 0; overflow: hidden; visibility: hidden; pointer-events: none; border-radius: 19px; background: #fff; box-shadow: 0 0 20px rgb(0 0 0 / 8%); transition: height 250ms ease; }
+    .quick-card.is-mood-overlaying .quick-list,
+    .quick-card.is-mood-overlaying > .voice-entry { opacity: 0; pointer-events: none; transition-duration: 150ms; }
+    .mood-card { position: absolute; z-index: 1; right: 12px; bottom: 91px; left: 12px; height: 72px; overflow: hidden; visibility: hidden; pointer-events: none; border-radius: 19px; background: #fff; box-shadow: 0 0 20px rgb(0 0 0 / 8%); transition: height 250ms ease; }
     .mood-card .mood-panel { position: absolute; top: 2px; right: 12px; left: 12px; display: block; opacity: 0; pointer-events: none; transition: opacity 250ms ease; }
     .mood-card.is-visible { height: 142px; visibility: visible; pointer-events: auto; }
     .mood-card.is-visible .mood-panel { opacity: 1; pointer-events: auto; transition-delay: 100ms; }
-    .mood-card.is-closing { height: 0; pointer-events: none; }
+    .mood-card.is-closing { height: 72px; pointer-events: none; }
     .mood-card.is-closing .mood-panel { opacity: 0; transition-delay: 0ms; }
     .mood-card.is-restoring { transition: none; }
     .symptom-card.is-visible { height: 250px; visibility: visible; pointer-events: auto; }
@@ -107,7 +109,7 @@
   <main class="page is-scheme-2">
     <nav class="scheme-switch" aria-label="方案切换">
       <button type="button" data-scheme="scheme-1">方案1</button>
-      <button class="is-active" type="button" data-scheme="scheme-2">方案2</button>
+      <button class="is-active" type="button" data-scheme="scheme-2">方案2-定稿</button>
     </nav>
     <section class="quick-card" aria-label="快捷记录">
       <div class="quick-list">
@@ -196,7 +198,7 @@
 
     function applySchemeState(state) {
       quickCard.classList.add('is-restoring');
-      quickCard.classList.remove('is-menstrual', 'is-mood', 'is-mood-visible', 'is-mood-leaving');
+      quickCard.classList.remove('is-menstrual', 'is-mood', 'is-mood-visible', 'is-mood-leaving', 'is-mood-overlaying');
       symptomCard.classList.remove('is-visible', 'is-closing');
       moodCard.classList.remove('is-visible', 'is-closing', 'is-restoring');
       recordCard.classList.remove('is-visible', 'is-closing', 'is-fading', 'is-static-height');
@@ -209,6 +211,7 @@
 
       if (state.panel === 'menstrual') quickCard.classList.add('is-menstrual');
       if (state.panel === 'mood' && activeScheme === 'scheme-2') {
+        quickCard.classList.add('is-mood-overlaying');
         moodCard.classList.add('is-restoring', 'is-visible');
         requestAnimationFrame(() => moodCard.classList.remove('is-restoring'));
       }
@@ -295,6 +298,7 @@
       if (activeScheme === 'scheme-2') {
         moodCard.classList.remove('is-closing');
         moodCard.classList.add('is-visible');
+        quickCard.classList.add('is-mood-overlaying');
         return;
       }
       if (quickCard.classList.contains('is-mood')) return;
@@ -312,6 +316,7 @@
     moodCard.querySelector('.mood-close').addEventListener('click', () => {
       if (moodCard.classList.contains('is-closing')) return;
       moodCard.classList.add('is-closing');
+      quickCard.classList.remove('is-mood-overlaying');
       window.setTimeout(() => moodCard.classList.remove('is-visible', 'is-closing'), 250);
     });
     document.querySelector('.symptom-trigger').addEventListener('click', () => {
