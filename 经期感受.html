@@ -98,7 +98,7 @@
       position: absolute;
       z-index: 2;
       right: 84px;
-      bottom: 233px;
+      bottom: 249px;
       left: 12px;
       padding: 12px 14px;
       border-radius: 14px;
@@ -158,49 +158,14 @@
       will-change: transform;
     }
 
-    .scheme-two-icon {
-      position: relative;
-      z-index: 1;
-      display: none;
-      width: 26px;
-      height: 26px;
-      margin: 7px 0;
-    }
-
-    .scheme-two-icon img {
-      display: block;
-      width: 26px !important;
-      height: 26px !important;
-      margin: 0 !important;
-    }
-
-    .guide-bars {
-      position: absolute;
-      inset: 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 2px;
-      padding-top: 3px;
-      pointer-events: none;
-    }
-
-    .guide-bars i {
-      display: block;
-      width: 2.5px;
-      height: 10px;
-      border-radius: 4px;
-      background: linear-gradient(180deg, #fff 0%, #ffcfe0 100%);
-    }
-
     .guide-halo {
       display: none;
       position: absolute !important;
       z-index: 0;
-      top: -4px;
+      top: -2px;
       left: 50%;
-      width: 48px !important;
-      height: 48px !important;
+      width: 44px !important;
+      height: 44px !important;
       margin: 0 !important;
       pointer-events: none;
     }
@@ -248,35 +213,7 @@
     }
 
     .scheme-two .guide-icon {
-      display: none;
       animation: none;
-    }
-
-    .scheme-two .scheme-two-icon {
-      display: block;
-    }
-
-    .scheme-two .guide-bars i {
-      animation: guide-bar-pulse 2.5s ease-in-out infinite;
-      transform-origin: center;
-      will-change: transform;
-    }
-
-    .scheme-two .guide-bars i:nth-child(2) {
-      animation-delay: 220ms;
-    }
-
-    .scheme-two .guide-bars i:nth-child(3) {
-      animation-delay: 440ms;
-    }
-
-    @keyframes guide-bar-pulse {
-      0%,
-      40%,
-      68%,
-      100% { opacity: .72; transform: scaleY(.5); }
-      20%,
-      60% { opacity: 1; transform: scaleY(1); }
     }
 
     .scheme-two .menstrual-guide::before,
@@ -292,7 +229,6 @@
     }
 
     .experiment-two .menstrual-guide .guide-icon,
-    .experiment-two .menstrual-guide .scheme-two-icon,
     .experiment-two .menstrual-guide .guide-halo,
     .experiment-two .menstrual-guide::before,
     .experiment-two .menstrual-guide::after,
@@ -319,8 +255,7 @@
       .guide-icon,
       .menstrual-guide::before,
       .menstrual-guide::after,
-      .scheme-two .guide-halo,
-      .scheme-two .guide-bars i {
+      .scheme-two .guide-halo {
         animation: none;
       }
     }
@@ -400,12 +335,8 @@
     <section class="quick-card" aria-label="快捷记录">
       <div class="quick-grid">
         <div class="quick-item menstrual-guide" role="button" tabindex="0" aria-label="记录月经感受">
-          <img class="guide-halo" src="./切图/光晕.png" alt="">
+          <img class="guide-halo" src="./切图/光晕.png?v=20260902" alt="">
           <img class="guide-icon" src="./切图/月经感受.png" alt="">
-          <span class="scheme-two-icon" aria-hidden="true">
-            <img src="./切图/月经感受-无条.png" alt="">
-            <span class="guide-bars"><i></i><i></i><i></i></span>
-          </span>
           <span>月经感受</span>
         </div>
         <div class="quick-item">
