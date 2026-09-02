@@ -156,6 +156,46 @@
       will-change: transform;
     }
 
+    .scheme-two-icon {
+      position: relative;
+      z-index: 1;
+      display: none;
+      width: 26px;
+      height: 26px;
+      margin: 7px 0;
+    }
+
+    .scheme-two-icon img {
+      display: block;
+      width: 26px !important;
+      height: 26px !important;
+      margin: 0 !important;
+    }
+
+    .guide-bars {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 2px;
+      padding-top: 3px;
+      pointer-events: none;
+    }
+
+    .guide-bars i {
+      display: block;
+      width: 2.5px;
+      height: 8px;
+      border-radius: 4px;
+      background: linear-gradient(180deg, #fff 0%, #ffcfe0 100%);
+    }
+
+    .guide-bars i:nth-child(2) {
+      width: 2.5px;
+      height: 10px;
+    }
+
     .guide-halo {
       display: none;
       position: absolute !important;
@@ -192,16 +232,16 @@
     }
 
     .menstrual-guide::before {
-      animation: menstrual-guide-ring 2.5s ease-out infinite 300ms;
+      animation: menstrual-guide-ring 2.5s ease-out infinite 500ms;
     }
 
     @keyframes menstrual-icon-guide {
       0%,
-      100% { transform: translateY(0) scale(1); }
-      20% { transform: translateY(-3px) scale(1.08); }
-      36% { transform: translateY(0) scale(0.98); }
-      52% { transform: translateY(-1px) scale(1.03); }
-      65% { transform: translateY(0) scale(1); }
+      100% { transform: scale(1); }
+      20% { transform: scale(1.15); }
+      36% { transform: scale(0.98); }
+      52% { transform: scale(1.03); }
+      65% { transform: scale(1); }
     }
 
     @keyframes menstrual-guide-ring {
@@ -211,7 +251,36 @@
     }
 
     .scheme-two .guide-icon {
+      display: none;
       animation: none;
+    }
+
+    .scheme-two .scheme-two-icon {
+      display: block;
+    }
+
+    .scheme-two .guide-bars i {
+      animation: guide-bar-pulse 2.1s ease-in-out infinite;
+      transform-origin: center;
+      will-change: transform;
+    }
+
+    .scheme-two .guide-bars i:nth-child(1) {
+      animation-delay: -220ms;
+    }
+
+    .scheme-two .guide-bars i:nth-child(2) {
+      animation-delay: -420ms;
+    }
+
+    .scheme-two .guide-bars i:nth-child(3) {
+      animation-delay: -620ms;
+    }
+
+    @keyframes guide-bar-pulse {
+      0%,
+      100% { opacity: .72; transform: scaleY(.72); }
+      50% { opacity: 1; transform: scaleY(1.2); }
     }
 
     .scheme-two .menstrual-guide::before,
@@ -236,7 +305,8 @@
       .guide-icon,
       .menstrual-guide::before,
       .menstrual-guide::after,
-      .scheme-two .guide-halo {
+      .scheme-two .guide-halo,
+      .scheme-two .guide-bars i {
         animation: none;
       }
     }
@@ -285,12 +355,12 @@
   </style>
 </head>
 <body>
-  <main class="screen" aria-label="经期感受页面">
+  <main class="screen scheme-two" aria-label="经期感受页面">
     <div class="stage" aria-hidden="true"></div>
 
     <div class="scheme-switch" role="group" aria-label="引导动效方案">
-      <button type="button" data-scheme="one" aria-pressed="true">方案1</button>
-      <button type="button" data-scheme="two" aria-pressed="false">方案2</button>
+      <button type="button" data-scheme="one" aria-pressed="false">方案1</button>
+      <button type="button" data-scheme="two" aria-pressed="true">方案2</button>
     </div>
 
     <section class="quick-card" aria-label="快捷记录">
@@ -298,6 +368,10 @@
         <div class="quick-item menstrual-guide" role="button" tabindex="0" aria-label="记录月经感受">
           <img class="guide-halo" src="./切图/光晕.png" alt="">
           <img class="guide-icon" src="./切图/月经感受.png" alt="">
+          <span class="scheme-two-icon" aria-hidden="true">
+            <img src="./切图/月经感受-无条.png" alt="">
+            <span class="guide-bars"><i></i><i></i><i></i></span>
+          </span>
           <span>月经感受</span>
         </div>
         <div class="quick-item">
