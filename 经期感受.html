@@ -298,6 +298,25 @@
       grid-template-columns: repeat(4, 1fr);
     }
 
+    .interaction-note {
+      position: absolute;
+      z-index: 1;
+      top: 292px;
+      right: 24px;
+      left: 24px;
+      display: none;
+      margin: 0;
+      color: #9b9ba1;
+      font-size: 14px;
+      font-weight: 400;
+      line-height: 20px;
+      text-align: center;
+    }
+
+    .experiment-two .interaction-note {
+      display: block;
+    }
+
     @keyframes menstrual-halo-rotate {
       0% { opacity: 0; transform: translateX(-50%) rotate(0deg); }
       50% { opacity: 1; transform: translateX(-50%) rotate(180deg); }
@@ -328,7 +347,10 @@
       .guide-icon,
       .menstrual-guide::before,
       .menstrual-guide::after,
-      .scheme-one .guide-halo {
+      .scheme-one .guide-halo,
+      .voice-entry::before,
+      .voice-entry::after,
+      .voice-entry.is-hold-to-talk .voice-label {
         animation: none;
       }
     }
@@ -342,9 +364,51 @@
       align-items: center;
       height: 48px;
       padding: 0 12px;
-      border: 1px solid var(--stroke);
+      border: 1px solid transparent;
       border-radius: 24px;
       background: #fff;
+      isolation: isolate;
+    }
+
+    .voice-entry::before {
+      position: absolute;
+      inset: -1px;
+      z-index: 0;
+      padding: 2px;
+      border-radius: inherit;
+      background: linear-gradient(100deg, #ffb89f, #ffa3c2, #ffa8e6, #ffb89f);
+      background-size: 300% 100%;
+      animation: voice-border-flow 4s linear infinite;
+      content: "";
+      -webkit-mask:
+        linear-gradient(#000 0 0) content-box,
+        linear-gradient(#000 0 0);
+      -webkit-mask-composite: xor;
+      mask-composite: exclude;
+      pointer-events: none;
+    }
+
+    .voice-entry::after {
+      position: absolute;
+      inset: -2px;
+      z-index: -1;
+      padding: 1px;
+      border-radius: inherit;
+      background: #ffb8cf;
+      content: "";
+      opacity: 0;
+      animation: voice-border-pulse 1.8s ease-out infinite;
+      -webkit-mask:
+        linear-gradient(#000 0 0) content-box,
+        linear-gradient(#000 0 0);
+      -webkit-mask-composite: xor;
+      mask-composite: exclude;
+      pointer-events: none;
+    }
+
+    .voice-entry > * {
+      position: relative;
+      z-index: 1;
     }
 
     .voice-entry.is-hold-to-talk {
@@ -374,13 +438,30 @@
       color: var(--text-muted);
       font-size: 17px;
       line-height: 1;
-      font-weight: 500;
+      font-weight: 400;
       letter-spacing: 0.02em;
     }
 
     .voice-entry.is-hold-to-talk .voice-label {
-      color: var(--text-main);
-      font-weight: 600;
+      font-weight: 500;
+      color: transparent;
+      background: linear-gradient(100deg, #ff8965, #ff75a3, #ff5acb, #ff8965);
+      background-size: 300% 100%;
+      animation: voice-border-flow 4s linear infinite;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    @keyframes voice-border-flow {
+      from { background-position: 0% 50%; }
+      to { background-position: 300% 50%; }
+    }
+
+    @keyframes voice-border-pulse {
+      0% { opacity: 1; inset: -2px; border-radius: 24px; }
+      83.3333%,
+      100% { opacity: 0; inset: -8px; border-radius: 32px; }
     }
 
     .tabbar {
@@ -397,18 +478,20 @@
   </style>
 </head>
 <body>
-  <main class="screen experiment-one scheme-one" aria-label="经期感受页面">
+  <main class="screen experiment-two scheme-one" aria-label="经期感受页面">
     <div class="stage" aria-hidden="true"></div>
 
     <div class="experiment-switch" role="group" aria-label="实验组切换">
-      <button type="button" data-experiment="one" aria-pressed="true">实验组1</button>
-      <button type="button" data-experiment="two" aria-pressed="false">实验组2(设计中)</button>
+      <button type="button" data-experiment="one" aria-pressed="false">实验组1</button>
+      <button type="button" data-experiment="two" aria-pressed="true">实验组2(设计中)</button>
     </div>
 
     <div class="scheme-switch" role="group" aria-label="方案切换">
       <button type="button" data-scheme="one" aria-pressed="true">方案1</button>
       <button type="button" data-scheme="two" aria-pressed="false">方案2</button>
     </div>
+
+    <p class="interaction-note">键盘/语音切换按钮可点击</p>
 
     <section class="quick-card" aria-label="快捷记录">
       <div class="quick-grid">
@@ -435,9 +518,9 @@
         </div>
       </div>
 
-      <div class="voice-entry" aria-label="记录生活点滴">
-        <img class="voice-toggle" src="./切图/切换语音.png" alt="切换为语音输入" role="button" tabindex="0">
-        <span class="voice-label">记录生活点滴</span>
+      <div class="voice-entry" aria-label="记下这次血量变化、经期症状">
+        <img class="voice-toggle" src="./切图/切换语音-粉.png" alt="切换为语音输入" role="button" tabindex="0">
+        <span class="voice-label">记下这次血量变化、经期症状</span>
       </div>
     </section>
 
@@ -455,12 +538,20 @@
     const voiceToggle = document.querySelector('.voice-toggle');
     const voiceLabel = document.querySelector('.voice-label');
 
-    function toggleVoiceMode() {
-      const isHoldToTalk = voiceEntry.classList.toggle('is-hold-to-talk');
-      voiceToggle.src = isHoldToTalk ? './切图/切换键盘.png' : './切图/切换语音.png';
+    function syncVoiceMode() {
+      const isHoldToTalk = voiceEntry.classList.contains('is-hold-to-talk');
+      const iconVariant = screen.classList.contains('experiment-two') ? '-粉' : '';
+      voiceToggle.src = isHoldToTalk
+        ? `./切图/切换键盘${iconVariant}.png`
+        : `./切图/切换语音${iconVariant}.png`;
       voiceToggle.alt = isHoldToTalk ? '切换为文字输入' : '切换为语音输入';
-      voiceEntry.setAttribute('aria-label', isHoldToTalk ? '按住说话' : '记录生活点滴');
-      voiceLabel.textContent = isHoldToTalk ? '按住说话' : '记录生活点滴';
+      voiceEntry.setAttribute('aria-label', isHoldToTalk ? '按住记录经期感受' : '记下这次血量变化、经期症状');
+      voiceLabel.textContent = isHoldToTalk ? '按住记录经期感受' : '记下这次血量变化、经期症状';
+    }
+
+    function toggleVoiceMode() {
+      voiceEntry.classList.toggle('is-hold-to-talk');
+      syncVoiceMode();
     }
 
     voiceToggle.addEventListener('click', toggleVoiceMode);
@@ -479,6 +570,7 @@
         experimentButtons.forEach((item) => {
           item.setAttribute('aria-pressed', String(item === button));
         });
+        syncVoiceMode();
       });
     });
 
