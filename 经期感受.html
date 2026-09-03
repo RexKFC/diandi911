@@ -82,43 +82,6 @@
       box-shadow: 0 2px 6px rgb(255 91 153 / 30%);
     }
 
-    .scheme-switch {
-      position: absolute;
-      z-index: 3;
-      top: 62px;
-      left: 50%;
-      display: flex;
-      padding: 3px;
-      border: 1px solid #e7e7eb;
-      border-radius: 18px;
-      background: rgb(255 255 255 / 88%);
-      box-shadow: 0 4px 12px rgb(0 0 0 / 5%);
-      transform: translateX(-50%);
-    }
-
-    .scheme-switch[hidden] {
-      display: none;
-    }
-
-    .scheme-switch button {
-      min-width: 62px;
-      height: 30px;
-      padding: 0 12px;
-      border: 0;
-      border-radius: 15px;
-      background: transparent;
-      color: #8c8c92;
-      font: 13px/30px "PingFang SC", "Microsoft YaHei", sans-serif;
-      white-space: nowrap;
-      cursor: pointer;
-    }
-
-    .scheme-switch button[aria-pressed="true"] {
-      background: #ff5b99;
-      color: #fff;
-      box-shadow: 0 2px 6px rgb(255 91 153 / 30%);
-    }
-
     .quick-card {
       position: absolute;
       right: 12px;
@@ -339,10 +302,6 @@
       100% { opacity: .1; transform: translateX(-50%) rotate(360deg) scale(1); }
     }
 
-    .experiment-two .scheme-switch {
-      display: none;
-    }
-
     @media (prefers-reduced-motion: reduce) {
       .guide-icon,
       .menstrual-guide::before,
@@ -404,6 +363,24 @@
       -webkit-mask-composite: xor;
       mask-composite: exclude;
       pointer-events: none;
+    }
+
+    /* 实验组1固定使用方案2，输入框不播放任何边框或扩散动效。 */
+    .experiment-one .voice-entry {
+      border-color: #dfdfe1;
+    }
+
+    .experiment-one .voice-entry::before,
+    .experiment-one .voice-entry::after {
+      display: none;
+      animation: none;
+    }
+
+    .experiment-one .voice-entry.is-hold-to-talk .voice-label {
+      color: var(--text-muted);
+      background: none;
+      animation: none;
+      -webkit-text-fill-color: currentColor;
     }
 
     .voice-entry > * {
@@ -479,17 +456,12 @@
   </style>
 </head>
 <body>
-  <main class="screen experiment-two scheme-one" aria-label="经期感受页面">
+  <main class="screen experiment-two scheme-two" aria-label="经期感受页面">
     <div class="stage" aria-hidden="true"></div>
 
     <div class="experiment-switch" role="group" aria-label="实验组切换">
       <button type="button" data-experiment="one" aria-pressed="false">实验组1</button>
       <button type="button" data-experiment="two" aria-pressed="true">实验组2(设计中)</button>
-    </div>
-
-    <div class="scheme-switch" role="group" aria-label="方案切换">
-      <button type="button" data-scheme="one" aria-pressed="true">方案1</button>
-      <button type="button" data-scheme="two" aria-pressed="false">方案2</button>
     </div>
 
     <p class="interaction-note">键盘/语音切换按钮可点击</p>
@@ -534,7 +506,6 @@
   <script>
     const screen = document.querySelector('.screen');
     const experimentButtons = document.querySelectorAll('[data-experiment]');
-    const schemeButtons = document.querySelectorAll('[data-scheme]');
     const voiceEntry = document.querySelector('.voice-entry');
     const voiceToggle = document.querySelector('.voice-toggle');
     const voiceLabel = document.querySelector('.voice-label');
@@ -568,6 +539,8 @@
         const isExperimentTwo = button.dataset.experiment === 'two';
         screen.classList.toggle('experiment-two', isExperimentTwo);
         screen.classList.toggle('experiment-one', !isExperimentTwo);
+        screen.classList.add('scheme-two');
+        screen.classList.remove('scheme-one');
         experimentButtons.forEach((item) => {
           item.setAttribute('aria-pressed', String(item === button));
         });
@@ -575,16 +548,6 @@
       });
     });
 
-    schemeButtons.forEach((button) => {
-      button.addEventListener('click', () => {
-        const isSchemeTwo = button.dataset.scheme === 'two';
-        screen.classList.toggle('scheme-two', isSchemeTwo);
-        screen.classList.toggle('scheme-one', !isSchemeTwo);
-        schemeButtons.forEach((item) => {
-          item.setAttribute('aria-pressed', String(item === button));
-        });
-      });
-    });
   </script>
 </body>
 </html>
