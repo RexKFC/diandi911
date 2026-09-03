@@ -428,7 +428,7 @@
     .google-border-flow .flow-diffuse {
       stroke: url(#google-flow-gradient);
       stroke-width: 4;
-      opacity: 0.3;
+      opacity: 0.5;
       filter: url(#google-flow-diffuse);
     }
 
@@ -581,7 +581,7 @@
               <animateTransform attributeName="gradientTransform" type="rotate" values="0 175.5 24; 360 175.5 24; 360 175.5 24" keyTimes="0; 0.9090909; 1" dur="3.3s" calcMode="linear" repeatCount="indefinite" />
             </linearGradient>
             <filter id="google-flow-diffuse" x="-5%" y="-50%" width="110%" height="200%" color-interpolation-filters="sRGB">
-              <feGaussianBlur stdDeviation="2" />
+              <feGaussianBlur stdDeviation="4" />
             </filter>
           </defs>
           <rect class="flow-diffuse" x="1" y="1" width="349" height="46" rx="23" fill="none" pathLength="100" />
