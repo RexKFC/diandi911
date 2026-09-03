@@ -266,12 +266,12 @@
     }
 
     .scheme-two .guide-icon {
-      animation: menstrual-icon-sync 4.3s ease-in-out infinite;
+      animation: menstrual-icon-sync 4s ease-in-out infinite;
     }
 
     .scheme-two .guide-halo {
       display: block;
-      animation: menstrual-halo-sync 4.3s linear infinite;
+      animation: menstrual-halo-sync 4s linear infinite;
       will-change: transform;
     }
 
@@ -307,19 +307,17 @@
     @keyframes menstrual-icon-sync {
       0%,
       100% { transform: scale(1); }
-      23.2558% { transform: scale(1.1); }
-      46.5116% { transform: scale(1); }
-      69.7674% { transform: scale(1.1); }
-      93.0233% { transform: scale(1); }
+      25% { transform: scale(1.1); }
+      50% { transform: scale(1); }
+      75% { transform: scale(1.1); }
     }
 
     @keyframes menstrual-halo-sync {
-      0% { opacity: 0; transform: translateX(-50%) rotate(0deg) scale(1); }
-      23.2558% { transform: translateX(-50%) rotate(90deg) scale(1.1); }
-      46.5116% { opacity: 1; transform: translateX(-50%) rotate(180deg) scale(1); }
-      69.7674% { transform: translateX(-50%) rotate(270deg) scale(1.1); }
-      93.0233% { opacity: 0; transform: translateX(-50%) rotate(360deg) scale(1); }
-      100% { opacity: 0; transform: translateX(-50%) rotate(360deg) scale(1); }
+      0% { opacity: .1; transform: translateX(-50%) rotate(0deg) scale(1); }
+      25% { transform: translateX(-50%) rotate(90deg) scale(1.1); }
+      50% { opacity: 1; transform: translateX(-50%) rotate(180deg) scale(1); }
+      75% { transform: translateX(-50%) rotate(270deg) scale(1.1); }
+      100% { opacity: .1; transform: translateX(-50%) rotate(360deg) scale(1); }
     }
 
     .experiment-two .scheme-switch {
