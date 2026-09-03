@@ -387,13 +387,59 @@
       border-color: #dfdfe1;
     }
 
-    /* Google 风格的流光由 SVG 路径驱动，沿边框行进而非整体旋转。 */
+    @property --google-flow-angle {
+      syntax: "<angle>";
+      inherits: true;
+      initial-value: 0deg;
+    }
+
+    @property --google-glow-opacity {
+      syntax: "<number>";
+      inherits: true;
+      initial-value: 0.25;
+    }
+
+    /* 环形渐变按输入框周向分布，避免上下边重复同一段横向渐变。 */
     .experiment-two .voice-entry::before {
-      display: none;
+      display: block;
+      inset: -1px;
+      z-index: 2;
+      padding: 2px;
+      background: conic-gradient(
+        from var(--google-flow-angle),
+        #e5a8ff 0deg,
+        #e5a8ff 90deg,
+        #ffc470 144deg,
+        #ff9abc 180deg,
+        #ff6cb9 216deg,
+        #ffb89f 270deg,
+        #e5a8ff 360deg
+      );
+      animation: none;
     }
 
     .experiment-two .voice-entry::after {
-      display: none;
+      display: block;
+      inset: -1px;
+      z-index: 1;
+      padding: 2px;
+      border-radius: inherit;
+      background: conic-gradient(
+        from var(--google-flow-angle),
+        #e5a8ff 0deg,
+        #e5a8ff 90deg,
+        #ffc470 144deg,
+        #ff9abc 180deg,
+        #ff6cb9 216deg,
+        #ffb89f 270deg,
+        #e5a8ff 360deg
+      );
+      opacity: calc(0.85 * var(--google-glow-opacity));
+      filter:
+        drop-shadow(0 0 5px rgb(229 168 255 / 0.55))
+        drop-shadow(0 0 5px rgb(255 196 112 / 0.42))
+        drop-shadow(0 0 5px rgb(255 108 185 / 0.5))
+        drop-shadow(0 0 5px rgb(255 184 159 / 0.4));
       animation: none;
     }
 
@@ -404,44 +450,36 @@
       -webkit-text-fill-color: currentColor;
     }
 
-    .voice-entry .google-border-flow {
-      position: absolute;
-      inset: -1px;
-      z-index: 0;
-      display: none;
-      width: calc(100% + 2px);
-      height: calc(100% + 2px);
-      overflow: visible;
-      pointer-events: none;
+    .experiment-two .quick-card {
+      animation: google-flow-orbit 3.5s linear infinite;
     }
 
-    .experiment-two .google-border-flow {
-      display: block;
-      animation: google-flow-cycle 3.3s linear infinite;
+    .experiment-two .voice-entry {
+      z-index: 1;
+      animation: google-glow-cycle 3.5s linear infinite;
+      box-shadow:
+        0 0 8px rgb(229 168 255 / calc(0.55 * var(--google-glow-opacity))),
+        0 0 14px rgb(255 108 185 / calc(0.45 * var(--google-glow-opacity))),
+        0 0 18px rgb(255 196 112 / calc(0.3 * var(--google-glow-opacity))),
+        inset 0 0 5px rgb(255 154 188 / calc(0.25 * var(--google-glow-opacity)));
     }
 
-    .google-border-flow .flow-light {
-      stroke: url(#google-flow-gradient);
-      stroke-width: 2;
+    .experiment-two .voice-entry > * {
+      z-index: 3;
     }
 
-    .google-border-flow .flow-diffuse {
-      stroke: url(#google-flow-gradient);
-      stroke-width: 4;
-      opacity: 0.5;
-      filter: url(#google-flow-diffuse);
+    @keyframes google-flow-orbit {
+      0% { --google-flow-angle: 0deg; }
+      71.4286%,
+      100% { --google-flow-angle: 360deg; }
     }
 
-    .google-border-flow .flow-light.flow-core {
-      stroke-dasharray: 100 0;
-    }
-
-    @keyframes google-flow-cycle {
-      0% { opacity: 0; }
-      30.3030%,
-      60.6061% { opacity: 1; }
-      90.9091%,
-      100% { opacity: 0; }
+    @keyframes google-glow-cycle {
+      0% { --google-glow-opacity: 0.25; }
+      23.8095%,
+      47.6190% { --google-glow-opacity: 1; }
+      71.4286%,
+      100% { --google-glow-opacity: 0.25; }
     }
 
     .voice-entry > * {
@@ -504,18 +542,10 @@
     }
 
     @media (prefers-reduced-motion: reduce) {
-      .google-border-flow animateTransform {
-        display: none;
-      }
-
-      .google-border-flow animate {
-        display: none;
-      }
-
-      .experiment-two .google-border-flow {
+      .experiment-two .quick-card {
         animation: none;
-        opacity: 1;
       }
+
     }
 
     .tabbar {
@@ -568,25 +598,6 @@
       </div>
 
       <div class="voice-entry" aria-label="记下这次血量变化、经期症状">
-        <svg class="google-border-flow" viewBox="0 0 351 48" preserveAspectRatio="none" aria-hidden="true">
-          <defs>
-            <linearGradient id="google-flow-gradient" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="351" y2="0">
-              <stop offset="0%" stop-color="#dfdfe1" />
-              <stop offset="25%" stop-color="#e5a8ff" />
-              <stop offset="40%" stop-color="#ffc470" />
-              <stop offset="50%" stop-color="#ff9abc" />
-              <stop offset="60%" stop-color="#ff6cb9" />
-              <stop offset="75%" stop-color="#ffb89f" />
-              <stop offset="100%" stop-color="#dfdfe1" />
-              <animateTransform attributeName="gradientTransform" type="rotate" values="0 175.5 24; 360 175.5 24; 360 175.5 24" keyTimes="0; 0.9090909; 1" dur="3.3s" calcMode="linear" repeatCount="indefinite" />
-            </linearGradient>
-            <filter id="google-flow-diffuse" x="-5%" y="-50%" width="110%" height="200%" color-interpolation-filters="sRGB">
-              <feGaussianBlur stdDeviation="4" />
-            </filter>
-          </defs>
-          <rect class="flow-diffuse" x="1" y="1" width="349" height="46" rx="23" fill="none" pathLength="100" />
-          <rect class="flow-light flow-core" x="1" y="1" width="349" height="46" rx="23" fill="none" pathLength="100" />
-        </svg>
         <img class="voice-toggle" src="./切图/切换语音.png" alt="切换为语音输入" role="button" tabindex="0">
         <span class="voice-label">记下这次血量变化、经期症状</span>
       </div>
