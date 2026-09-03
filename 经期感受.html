@@ -383,6 +383,67 @@
       -webkit-text-fill-color: currentColor;
     }
 
+    .experiment-two .voice-entry {
+      border-color: #dfdfe1;
+    }
+
+    /* Google 风格的流光由 SVG 路径驱动，沿边框行进而非整体旋转。 */
+    .experiment-two .voice-entry::before {
+      display: none;
+    }
+
+    .experiment-two .voice-entry::after {
+      display: none;
+      animation: none;
+    }
+
+    .experiment-two .voice-entry.is-hold-to-talk .voice-label {
+      color: #323232;
+      background: none;
+      animation: none;
+      -webkit-text-fill-color: currentColor;
+    }
+
+    .voice-entry .google-border-flow {
+      position: absolute;
+      inset: -1px;
+      z-index: 0;
+      display: none;
+      width: calc(100% + 2px);
+      height: calc(100% + 2px);
+      overflow: visible;
+      pointer-events: none;
+    }
+
+    .experiment-two .google-border-flow {
+      display: block;
+      animation: google-flow-cycle 3.3s linear infinite;
+    }
+
+    .google-border-flow .flow-light {
+      stroke: url(#google-flow-gradient);
+      stroke-width: 2;
+    }
+
+    .google-border-flow .flow-diffuse {
+      stroke: url(#google-flow-gradient);
+      stroke-width: 4;
+      opacity: 0.3;
+      filter: url(#google-flow-diffuse);
+    }
+
+    .google-border-flow .flow-light.flow-core {
+      stroke-dasharray: 100 0;
+    }
+
+    @keyframes google-flow-cycle {
+      0% { opacity: 0; }
+      30.3030%,
+      60.6061% { opacity: 1; }
+      90.9091%,
+      100% { opacity: 0; }
+    }
+
     .voice-entry > * {
       position: relative;
       z-index: 1;
@@ -442,6 +503,21 @@
       100% { opacity: 0; inset: -8px; padding: .5px; border-radius: 32px; }
     }
 
+    @media (prefers-reduced-motion: reduce) {
+      .google-border-flow animateTransform {
+        display: none;
+      }
+
+      .google-border-flow animate {
+        display: none;
+      }
+
+      .experiment-two .google-border-flow {
+        animation: none;
+        opacity: 1;
+      }
+    }
+
     .tabbar {
       position: absolute;
       right: 0;
@@ -492,7 +568,26 @@
       </div>
 
       <div class="voice-entry" aria-label="记下这次血量变化、经期症状">
-        <img class="voice-toggle" src="./切图/切换语音-粉.png" alt="切换为语音输入" role="button" tabindex="0">
+        <svg class="google-border-flow" viewBox="0 0 351 48" preserveAspectRatio="none" aria-hidden="true">
+          <defs>
+            <linearGradient id="google-flow-gradient" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="351" y2="0">
+              <stop offset="0%" stop-color="#dfdfe1" />
+              <stop offset="25%" stop-color="#e5a8ff" />
+              <stop offset="40%" stop-color="#ffc470" />
+              <stop offset="50%" stop-color="#ff9abc" />
+              <stop offset="60%" stop-color="#ff6cb9" />
+              <stop offset="75%" stop-color="#ffb89f" />
+              <stop offset="100%" stop-color="#dfdfe1" />
+              <animateTransform attributeName="gradientTransform" type="rotate" values="0 175.5 24; 360 175.5 24; 360 175.5 24" keyTimes="0; 0.9090909; 1" dur="3.3s" calcMode="linear" repeatCount="indefinite" />
+            </linearGradient>
+            <filter id="google-flow-diffuse" x="-5%" y="-50%" width="110%" height="200%" color-interpolation-filters="sRGB">
+              <feGaussianBlur stdDeviation="2" />
+            </filter>
+          </defs>
+          <rect class="flow-diffuse" x="1" y="1" width="349" height="46" rx="23" fill="none" pathLength="100" />
+          <rect class="flow-light flow-core" x="1" y="1" width="349" height="46" rx="23" fill="none" pathLength="100" />
+        </svg>
+        <img class="voice-toggle" src="./切图/切换语音.png" alt="切换为语音输入" role="button" tabindex="0">
         <span class="voice-label">记下这次血量变化、经期症状</span>
       </div>
     </section>
@@ -512,10 +607,9 @@
 
     function syncVoiceMode() {
       const isHoldToTalk = voiceEntry.classList.contains('is-hold-to-talk');
-      const iconVariant = screen.classList.contains('experiment-two') ? '-粉' : '';
       voiceToggle.src = isHoldToTalk
-        ? `./切图/切换键盘${iconVariant}.png`
-        : `./切图/切换语音${iconVariant}.png`;
+        ? './切图/切换键盘.png'
+        : './切图/切换语音.png';
       voiceToggle.alt = isHoldToTalk ? '切换为文字输入' : '切换为语音输入';
       voiceEntry.setAttribute('aria-label', isHoldToTalk ? '按住记录经期感受' : '记下这次血量变化、经期症状');
       voiceLabel.textContent = isHoldToTalk ? '按住记录经期感受' : '记下这次血量变化、经期症状';
