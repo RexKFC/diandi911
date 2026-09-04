@@ -82,6 +82,43 @@
       box-shadow: 0 2px 6px rgb(255 91 153 / 30%);
     }
 
+    .scheme-switch {
+      position: absolute;
+      z-index: 3;
+      top: 70px;
+      left: 50%;
+      display: none;
+      padding: 3px;
+      border: 1px solid #e7e7eb;
+      border-radius: 18px;
+      background: rgb(255 255 255 / 88%);
+      box-shadow: 0 4px 12px rgb(0 0 0 / 5%);
+      transform: translateX(-50%);
+    }
+
+    .experiment-two .scheme-switch {
+      display: flex;
+    }
+
+    .scheme-switch button {
+      min-width: 62px;
+      height: 30px;
+      padding: 0 12px;
+      border: 0;
+      border-radius: 15px;
+      background: transparent;
+      color: #8c8c92;
+      font: 13px/30px "PingFang SC", "Microsoft YaHei", sans-serif;
+      white-space: nowrap;
+      cursor: pointer;
+    }
+
+    .scheme-switch button[aria-pressed="true"] {
+      background: #ff5b99;
+      color: #fff;
+      box-shadow: 0 2px 6px rgb(255 91 153 / 30%);
+    }
+
     .quick-card {
       position: absolute;
       right: 12px;
@@ -399,8 +436,14 @@
       initial-value: 0.25;
     }
 
+    @property --scheme-two-beam-angle {
+      syntax: "<angle>";
+      inherits: true;
+      initial-value: 0deg;
+    }
+
     /* 环形渐变按输入框周向分布，避免上下边重复同一段横向渐变。 */
-    .experiment-two .voice-entry::before {
+    .experiment-two.scheme-one .voice-entry::before {
       display: block;
       inset: -1px;
       z-index: 2;
@@ -409,16 +452,25 @@
         from var(--google-flow-angle),
         #e5a8ff 0deg,
         #e5a8ff 90deg,
-        #ffc470 144deg,
-        #ff9abc 180deg,
-        #ff6cb9 216deg,
-        #ffb89f 270deg,
+        #ffc470 138deg,
+        #ff9abc 146deg,
+        rgb(255 154 188 / 85%) 154deg,
+        rgb(255 154 188 / 54%) 166deg,
+        rgb(255 154 188 / 22%) 182deg,
+        rgb(255 154 188 / 0) 202deg,
+        transparent 224deg,
+        rgb(255 108 185 / 0) 224deg,
+        rgb(255 108 185 / 22%) 244deg,
+        rgb(255 108 185 / 54%) 260deg,
+        rgb(255 108 185 / 85%) 276deg,
+        #ff6cb9 288deg,
+        #ffb89f 306deg,
         #e5a8ff 360deg
       );
       animation: none;
     }
 
-    .experiment-two .voice-entry::after {
+    .experiment-two.scheme-one .voice-entry::after {
       display: block;
       inset: -1px;
       z-index: 1;
@@ -428,13 +480,22 @@
         from var(--google-flow-angle),
         #e5a8ff 0deg,
         #e5a8ff 90deg,
-        #ffc470 144deg,
-        #ff9abc 180deg,
-        #ff6cb9 216deg,
-        #ffb89f 270deg,
+        #ffc470 138deg,
+        #ff9abc 146deg,
+        rgb(255 154 188 / 85%) 154deg,
+        rgb(255 154 188 / 54%) 166deg,
+        rgb(255 154 188 / 22%) 182deg,
+        rgb(255 154 188 / 0) 202deg,
+        transparent 224deg,
+        rgb(255 108 185 / 0) 224deg,
+        rgb(255 108 185 / 22%) 244deg,
+        rgb(255 108 185 / 54%) 260deg,
+        rgb(255 108 185 / 85%) 276deg,
+        #ff6cb9 288deg,
+        #ffb89f 306deg,
         #e5a8ff 360deg
       );
-      opacity: calc(0.85 * var(--google-glow-opacity));
+      opacity: calc(0.5 * var(--google-glow-opacity));
       filter:
         drop-shadow(0 0 5px rgb(229 168 255 / 0.55))
         drop-shadow(0 0 5px rgb(255 196 112 / 0.42))
@@ -450,11 +511,11 @@
       -webkit-text-fill-color: currentColor;
     }
 
-    .experiment-two .quick-card {
+    .experiment-two.scheme-one .quick-card {
       animation: google-flow-orbit 3.5s linear infinite;
     }
 
-    .experiment-two .voice-entry {
+    .experiment-two.scheme-one .voice-entry {
       z-index: 1;
       animation: google-glow-cycle 3.5s linear infinite;
       box-shadow:
@@ -464,22 +525,112 @@
         inset 0 0 5px rgb(255 154 188 / calc(0.25 * var(--google-glow-opacity)));
     }
 
-    .experiment-two .voice-entry > * {
+    .experiment-two.scheme-one .voice-entry > * {
       z-index: 3;
+    }
+
+    /* 方案2以短彩色光束沿灰色输入框描边持续环绕。 */
+    .experiment-two.scheme-two .voice-entry {
+      border: 1px solid #dfdfe1;
+      box-shadow: none;
+      animation: scheme-two-beam-orbit 4s linear infinite;
+    }
+
+    .experiment-two.scheme-two .voice-entry::before,
+    .experiment-two.scheme-two .voice-entry::after {
+      display: block;
+      inset: -1px;
+      padding: 2px;
+      border-radius: inherit;
+      background: conic-gradient(
+        from var(--scheme-two-beam-angle),
+        transparent 0deg 134deg,
+        rgb(229 168 255 / 0) 150deg,
+        #e5a8ff 174deg,
+        #ffc470 215deg,
+        #ff9abc 256deg,
+        #ff6cb9 297deg,
+        #ffb89f 336deg,
+        rgb(255 184 159 / 0) 360deg
+      );
+      animation: none;
+    }
+
+    .experiment-two.scheme-two .voice-entry::before {
+      z-index: 2;
+    }
+
+    .experiment-two.scheme-two .voice-entry::after {
+      z-index: 1;
+      opacity: 0.9;
+      filter:
+        drop-shadow(0 0 4px rgb(229 168 255 / 0.55))
+        drop-shadow(0 0 4px rgb(255 108 185 / 0.5))
+        drop-shadow(0 0 4px rgb(255 196 112 / 0.4));
+    }
+
+    .beam-interior {
+      display: none;
+    }
+
+    /* 光束在框内投下由边缘向中心渐隐的同色环境光。 */
+    .experiment-two.scheme-two .beam-interior {
+      position: absolute;
+      inset: 2px;
+      z-index: 1;
+      display: block;
+      border-radius: inherit;
+      background: conic-gradient(
+        from var(--scheme-two-beam-angle),
+        transparent 0deg 134deg,
+        rgb(229 168 255 / 0) 150deg,
+        rgb(229 168 255 / 0.52) 174deg,
+        rgb(255 196 112 / 0.52) 215deg,
+        rgb(255 154 188 / 0.58) 256deg,
+        rgb(255 108 185 / 0.58) 297deg,
+        rgb(255 184 159 / 0.52) 336deg,
+        rgb(255 184 159 / 0) 360deg
+      );
+      filter: blur(12px);
+      -webkit-mask-image: radial-gradient(
+        ellipse at center,
+        transparent 0%,
+        transparent 38%,
+        rgb(0 0 0 / 30%) 68%,
+        #000 100%
+      );
+      mask-image: radial-gradient(
+        ellipse at center,
+        transparent 0%,
+        transparent 38%,
+        rgb(0 0 0 / 30%) 68%,
+        #000 100%
+      );
+      pointer-events: none;
+    }
+
+    .experiment-two.scheme-two .voice-entry > * {
+      z-index: 3;
+    }
+
+    .experiment-two.scheme-two .voice-entry:not(.is-hold-to-talk) .voice-label {
+      color: rgb(0 0 0 / 20%);
     }
 
     @keyframes google-flow-orbit {
       0% { --google-flow-angle: 0deg; }
-      71.4286%,
       100% { --google-flow-angle: 360deg; }
     }
 
     @keyframes google-glow-cycle {
       0% { --google-glow-opacity: 0.25; }
-      23.8095%,
-      47.6190% { --google-glow-opacity: 1; }
-      71.4286%,
+      33.3333%,
+      66.6667% { --google-glow-opacity: 1; }
       100% { --google-glow-opacity: 0.25; }
+    }
+
+    @keyframes scheme-two-beam-orbit {
+      to { --scheme-two-beam-angle: 360deg; }
     }
 
     .voice-entry > * {
@@ -542,7 +693,11 @@
     }
 
     @media (prefers-reduced-motion: reduce) {
-      .experiment-two .quick-card {
+      .experiment-two.scheme-one .quick-card {
+        animation: none;
+      }
+
+      .experiment-two.scheme-two .voice-entry {
         animation: none;
       }
 
@@ -562,12 +717,17 @@
   </style>
 </head>
 <body>
-  <main class="screen experiment-two scheme-two" aria-label="经期感受页面">
+  <main class="screen experiment-two scheme-one" aria-label="经期感受页面">
     <div class="stage" aria-hidden="true"></div>
 
     <div class="experiment-switch" role="group" aria-label="实验组切换">
       <button type="button" data-experiment="one" aria-pressed="false">实验组1</button>
       <button type="button" data-experiment="two" aria-pressed="true">实验组2(设计中)</button>
+    </div>
+
+    <div class="scheme-switch" role="group" aria-label="实验组2方案切换">
+      <button type="button" data-scheme="one" aria-pressed="true">方案1</button>
+      <button type="button" data-scheme="two" aria-pressed="false">方案2</button>
     </div>
 
     <p class="interaction-note">键盘/语音切换按钮可点击</p>
@@ -598,6 +758,7 @@
       </div>
 
       <div class="voice-entry" aria-label="记下这次血量变化、经期症状">
+        <span class="beam-interior" aria-hidden="true"></span>
         <img class="voice-toggle" src="./切图/切换语音.png" alt="切换为语音输入" role="button" tabindex="0">
         <span class="voice-label">记下这次血量变化、经期症状</span>
       </div>
@@ -612,6 +773,7 @@
   <script>
     const screen = document.querySelector('.screen');
     const experimentButtons = document.querySelectorAll('[data-experiment]');
+    const schemeButtons = document.querySelectorAll('[data-scheme]');
     const voiceEntry = document.querySelector('.voice-entry');
     const voiceToggle = document.querySelector('.voice-toggle');
     const voiceLabel = document.querySelector('.voice-label');
@@ -631,6 +793,17 @@
       syncVoiceMode();
     }
 
+    let experimentTwoScheme = 'one';
+
+    function setScheme(scheme) {
+      experimentTwoScheme = scheme;
+      screen.classList.toggle('scheme-one', scheme === 'one');
+      screen.classList.toggle('scheme-two', scheme === 'two');
+      schemeButtons.forEach((item) => {
+        item.setAttribute('aria-pressed', String(item.dataset.scheme === scheme));
+      });
+    }
+
     voiceToggle.addEventListener('click', toggleVoiceMode);
     voiceToggle.addEventListener('keydown', (event) => {
       if (event.key === 'Enter' || event.key === ' ') {
@@ -639,13 +812,23 @@
       }
     });
 
+    schemeButtons.forEach((button) => {
+      button.addEventListener('click', () => {
+        setScheme(button.dataset.scheme);
+      });
+    });
+
     experimentButtons.forEach((button) => {
       button.addEventListener('click', () => {
         const isExperimentTwo = button.dataset.experiment === 'two';
         screen.classList.toggle('experiment-two', isExperimentTwo);
         screen.classList.toggle('experiment-one', !isExperimentTwo);
-        screen.classList.add('scheme-two');
-        screen.classList.remove('scheme-one');
+        if (isExperimentTwo) {
+          setScheme(experimentTwoScheme);
+        } else {
+          screen.classList.add('scheme-two');
+          screen.classList.remove('scheme-one');
+        }
         experimentButtons.forEach((item) => {
           item.setAttribute('aria-pressed', String(item === button));
         });
