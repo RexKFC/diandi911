@@ -13,39 +13,25 @@
     button { font: inherit; }
 
     .screen { position: relative; flex: 0 0 402px; width: 402px; min-width: 402px; height: 874px; min-height: 874px; overflow: hidden; background: var(--page-bg); }
-    .status-bar { position: relative; height: 59px; color: #000; font-size: 17px; font-weight: 650; }
-    .clock { position: absolute; top: 22px; left: 53px; line-height: 20px; }
-    .dynamic-island { position: absolute; top: 14px; left: 50%; width: 125px; height: 37px; border-radius: 22px; background: #000; transform: translateX(-50%); }
-    .system-icons { position: absolute; top: 25px; right: 41px; display: flex; height: 15px; align-items: center; gap: 8px; }
-    .signal { display: flex; height: 13px; align-items: flex-end; gap: 2px; }
-    .signal i { display: block; width: 3.5px; border-radius: 2px; background: #000; }
-    .signal i:nth-child(1) { height: 5px; }
-    .signal i:nth-child(2) { height: 8px; }
-    .signal i:nth-child(3) { height: 11px; }
-    .signal i:nth-child(4) { height: 14px; }
-    .wifi { position: relative; width: 18px; height: 14px; overflow: hidden; }
-    .wifi::before, .wifi::after { position: absolute; left: 50%; border: 2px solid #000; border-right-color: transparent; border-bottom-color: transparent; border-radius: 50%; content: ""; transform: translateX(-50%) rotate(45deg); }
-    .wifi::before { top: -5px; width: 18px; height: 18px; }
-    .wifi::after { top: 1px; width: 9px; height: 9px; }
-    .wifi i { position: absolute; bottom: 0; left: 50%; width: 3.5px; height: 3.5px; border-radius: 50%; background: #000; transform: translateX(-50%); }
-    .battery { position: relative; width: 25px; height: 13px; border-radius: 4px; background: #000; }
-    .battery::after { position: absolute; top: 4px; right: -2px; width: 1.5px; height: 5px; border-radius: 0 2px 2px 0; background: #000; content: ""; }
+    .status-bar { height: 62px; }
+    .status-bar-image { display: block; width: 402px; height: 62px; object-fit: fill; }
 
     .title-bar { position: relative; display: flex; height: 47px; align-items: flex-end; justify-content: center; padding-bottom: 10px; border-bottom: 1px solid #e6e6e9; }
     h1 { margin: 0; font-size: 18px; font-weight: 600; line-height: 25px; }
     .motion-controls { position: absolute; z-index: 20; right: 8px; bottom: 10px; display: flex; gap: 3px; }
     .motion-trigger { height: 25px; min-width: 40px; padding: 0 8px; border: 1px solid #dedee2; border-radius: 13px; background: rgb(255 255 255 / 92%); color: #69696f; font-size: 11px; line-height: 23px; cursor: pointer; }
+    .clear-trigger { position: absolute; left: 8px; bottom: 10px; }
     .motion-trigger[aria-pressed="true"], .motion-trigger[aria-expanded="true"] { border-color: rgb(255 87 152 / 40%); background: #fff0f6; color: #f04487; }
     .text-control { position: relative; }
-    .text-options { position: absolute; top: 31px; right: -43px; display: none; width: 172px; padding: 5px; gap: 4px; border: 1px solid #e5e5e8; border-radius: 12px; background: rgb(255 255 255 / 98%); box-shadow: 0 6px 18px rgb(0 0 0 / 10%); }
+    .text-options { position: absolute; top: 31px; right: -19px; display: none; width: 78px; padding: 5px; flex-direction: column; gap: 4px; border: 1px solid #e5e5e8; border-radius: 12px; background: rgb(255 255 255 / 98%); box-shadow: 0 6px 18px rgb(0 0 0 / 10%); }
     .text-options.is-open { display: flex; }
-    .text-option { flex: 1; height: 26px; padding: 0 5px; border: 0; border-radius: 8px; background: transparent; color: #66666c; font-size: 11px; white-space: nowrap; cursor: pointer; }
+    .text-option { width: 100%; height: 26px; flex: 0 0 26px; padding: 0 5px; border: 0; border-radius: 8px; background: transparent; color: #66666c; font-size: 11px; white-space: nowrap; cursor: pointer; }
     .text-option[aria-pressed="true"] { background: #fff0f6; color: #f04487; font-weight: 600; }
-    .timeline-line { position: absolute; z-index: 0; top: 106px; bottom: 83px; left: 11.5px; width: 1px; background: var(--line); }
+    .timeline-line { position: absolute; z-index: 0; top: 109px; bottom: 83px; left: 11.5px; width: 1px; background: var(--line); }
     .timeline-dot { position: absolute; z-index: 1; left: 8px; width: 7px; height: 7px; border-radius: 50%; background: #c9c9cc; }
-    .timeline-scroll { position: absolute; z-index: 2; top: 106px; right: 12px; bottom: 245px; left: 8px; padding-top: 14px; overflow-x: hidden; overflow-y: auto; scrollbar-width: none; }
+    .timeline-scroll { position: absolute; z-index: 2; top: 109px; right: 12px; bottom: 245px; left: 8px; padding-top: 14px; overflow-x: hidden; overflow-y: auto; scrollbar-width: none; }
     .timeline-scroll::-webkit-scrollbar { display: none; }
-    .empty-hint { position: absolute; z-index: 3; top: 106px; right: 12px; bottom: 245px; left: 24px; display: flex; align-items: center; justify-content: center; margin: 0; color: #a5a5aa; font-size: 21px; line-height: 30px; text-align: center; pointer-events: none; transition: opacity 200ms ease, visibility 200ms ease; }
+    .empty-hint { position: absolute; z-index: 3; top: 109px; right: 12px; bottom: 245px; left: 24px; display: flex; align-items: center; justify-content: center; margin: 0; color: #a5a5aa; font-size: 21px; line-height: 30px; text-align: center; pointer-events: none; transition: opacity 200ms ease, visibility 200ms ease; }
     .empty-hint.is-hidden { visibility: hidden; opacity: 0; }
     .timeline-dot.primary { top: 23px; left: 0; width: 8px; height: 8px; background: linear-gradient(180deg, #ff70ac, #ff4f91); }
     .date-row { position: relative; z-index: 1; left: 16px; display: flex; height: 35px; align-items: baseline; gap: 7px; }
@@ -146,12 +132,9 @@
 <body>
   <main class="screen" aria-label="点滴记录反馈页面">
     <header>
-      <div class="status-bar" aria-hidden="true">
-        <span class="clock">9:41</span>
-        <span class="dynamic-island"></span>
-        <span class="system-icons"><span class="signal"><i></i><i></i><i></i><i></i></span><span class="wifi"><i></i></span><span class="battery"></span></span>
-      </div>
+      <div class="status-bar" aria-hidden="true"><img class="status-bar-image" src="切图/Status bar.png" alt=""></div>
       <div class="title-bar">
+        <button class="motion-trigger clear-trigger" type="button" data-trigger="clear" aria-pressed="false">清空</button>
         <h1>点滴</h1>
         <div class="motion-controls" aria-label="动效触发选项">
           <button class="motion-trigger" type="button" data-trigger="voice" aria-pressed="false">语音</button>
@@ -160,7 +143,7 @@
             <div class="text-options" aria-label="文字动效类型">
               <button class="text-option" type="button" data-text-state="feedback" aria-pressed="false">有AI反馈</button>
               <button class="text-option" type="button" data-text-state="no-feedback" aria-pressed="false">无AI反馈</button>
-              <button class="text-option" type="button" data-text-state="no-extract" aria-pressed="false">无提取</button>
+              <button class="text-option" type="button" data-text-state="no-extract" aria-pressed="false">无提取内容</button>
             </div>
           </div>
           <button class="motion-trigger" type="button" data-trigger="quick" aria-pressed="false">快捷</button>
@@ -380,6 +363,10 @@
 
     motionTriggers.forEach((button) => {
       button.addEventListener('click', () => {
+        if (button.dataset.trigger === 'clear') {
+          window.location.reload();
+          return;
+        }
         const isText = button === textTrigger;
         const willOpen = isText && button.getAttribute('aria-expanded') !== 'true';
         motionTriggers.forEach((item) => item.setAttribute('aria-pressed', String(item === button)));
