@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#f4f4f7">
+  <title>记录反馈</title>
+  <style>
+    :root { --page-bg: #f4f4f7; --ink: #37373a; --accent: #ff5798; --line: #dedee2; }
+    * { box-sizing: border-box; }
+    html, body { width: 100%; min-height: 100%; margin: 0; background: #292929; color: var(--ink); font-family: "PingFang SC", "Microsoft YaHei", system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
+    body { display: flex; justify-content: center; }
+    button { font: inherit; }
+
+    .screen { position: relative; flex: 0 0 402px; width: 402px; min-width: 402px; height: 874px; min-height: 874px; overflow: hidden; background: var(--page-bg); }
+    .status-bar { position: relative; height: 59px; color: #000; font-size: 17px; font-weight: 650; }
+    .clock { position: absolute; top: 22px; left: 53px; line-height: 20px; }
+    .dynamic-island { position: absolute; top: 14px; left: 50%; width: 125px; height: 37px; border-radius: 22px; background: #000; transform: translateX(-50%); }
+    .system-icons { position: absolute; top: 25px; right: 41px; display: flex; height: 15px; align-items: center; gap: 8px; }
+    .signal { display: flex; height: 13px; align-items: flex-end; gap: 2px; }
+    .signal i { display: block; width: 3.5px; border-radius: 2px; background: #000; }
+    .signal i:nth-child(1) { height: 5px; }
+    .signal i:nth-child(2) { height: 8px; }
+    .signal i:nth-child(3) { height: 11px; }
+    .signal i:nth-child(4) { height: 14px; }
+    .wifi { position: relative; width: 18px; height: 14px; overflow: hidden; }
+    .wifi::before, .wifi::after { position: absolute; left: 50%; border: 2px solid #000; border-right-color: transparent; border-bottom-color: transparent; border-radius: 50%; content: ""; transform: translateX(-50%) rotate(45deg); }
+    .wifi::before { top: -5px; width: 18px; height: 18px; }
+    .wifi::after { top: 1px; width: 9px; height: 9px; }
+    .wifi i { position: absolute; bottom: 0; left: 50%; width: 3.5px; height: 3.5px; border-radius: 50%; background: #000; transform: translateX(-50%); }
+    .battery { position: relative; width: 25px; height: 13px; border-radius: 4px; background: #000; }
+    .battery::after { position: absolute; top: 4px; right: -2px; width: 1.5px; height: 5px; border-radius: 0 2px 2px 0; background: #000; content: ""; }
+
+    .title-bar { position: relative; display: flex; height: 47px; align-items: flex-end; justify-content: center; padding-bottom: 10px; border-bottom: 1px solid #e6e6e9; }
+    h1 { margin: 0; font-size: 18px; font-weight: 600; line-height: 25px; }
+    .motion-controls { position: absolute; z-index: 20; right: 8px; bottom: 10px; display: flex; gap: 3px; }
+    .motion-trigger { height: 25px; min-width: 40px; padding: 0 8px; border: 1px solid #dedee2; border-radius: 13px; background: rgb(255 255 255 / 92%); color: #69696f; font-size: 11px; line-height: 23px; cursor: pointer; }
+    .motion-trigger[aria-pressed="true"], .motion-trigger[aria-expanded="true"] { border-color: rgb(255 87 152 / 40%); background: #fff0f6; color: #f04487; }
+    .text-control { position: relative; }
+    .text-options { position: absolute; top: 31px; right: -43px; display: none; width: 172px; padding: 5px; gap: 4px; border: 1px solid #e5e5e8; border-radius: 12px; background: rgb(255 255 255 / 98%); box-shadow: 0 6px 18px rgb(0 0 0 / 10%); }
+    .text-options.is-open { display: flex; }
+    .text-option { flex: 1; height: 26px; padding: 0 5px; border: 0; border-radius: 8px; background: transparent; color: #66666c; font-size: 11px; white-space: nowrap; cursor: pointer; }
+    .text-option[aria-pressed="true"] { background: #fff0f6; color: #f04487; font-weight: 600; }
+    .timeline-line { position: absolute; z-index: 0; top: 106px; bottom: 83px; left: 11.5px; width: 1px; background: var(--line); }
+    .timeline-dot { position: absolute; z-index: 1; left: 8px; width: 7px; height: 7px; border-radius: 50%; background: #c9c9cc; }
+    .timeline-scroll { position: absolute; z-index: 2; top: 106px; right: 12px; bottom: 245px; left: 8px; padding-top: 14px; overflow-x: hidden; overflow-y: auto; scrollbar-width: none; }
+    .timeline-scroll::-webkit-scrollbar { display: none; }
+    .empty-hint { position: absolute; z-index: 3; top: 106px; right: 12px; bottom: 245px; left: 24px; display: flex; align-items: center; justify-content: center; margin: 0; color: #a5a5aa; font-size: 21px; line-height: 30px; text-align: center; pointer-events: none; transition: opacity 200ms ease, visibility 200ms ease; }
+    .empty-hint.is-hidden { visibility: hidden; opacity: 0; }
+    .timeline-dot.primary { top: 23px; left: 0; width: 8px; height: 8px; background: linear-gradient(180deg, #ff70ac, #ff4f91); }
+    .date-row { position: relative; z-index: 1; left: 16px; display: flex; height: 35px; align-items: baseline; gap: 7px; }
+    .date { font-size: 22px; font-weight: 500; line-height: 30px; letter-spacing: -.02em; }
+    .weekday { color: #9f9fa3; font-size: 13px; line-height: 20px; }
+
+    .records-list { position: relative; z-index: 2; display: flex; flex-direction: column; gap: 12px; }
+    .record-entry { position: relative; flex: 0 0 auto; }
+    .record-entry.is-collapsed { padding-bottom: 12px; }
+    .entry-dot { position: absolute; z-index: 2; top: 18px; left: 0; width: 7px; height: 7px; border-radius: 50%; background: #c9c9cc; opacity: 0; }
+    .record-entry.is-visible .entry-dot { opacity: 1; }
+    .record-card { position: relative; z-index: 1; width: calc(100% - 16px); visibility: hidden; height: 174px; margin-left: 16px; padding: 13px 12px; overflow: hidden; border-radius: 12px; background: #fff; clip-path: inset(0 0 100% 0 round 12px); pointer-events: none; }
+    .record-card > * { opacity: 0; }
+    .record-card.is-visible { visibility: visible; clip-path: inset(0 0 0 0 round 12px); pointer-events: auto; transition: clip-path 150ms ease-out, height 300ms ease; }
+    .record-card.is-visible > * { opacity: 1; transition: opacity 300ms ease 150ms; }
+    .record-card.is-analyzed { height: 466px; }
+    .record-card.is-analyzed.is-collapsed { height: 256px; }
+    .record-card.is-text:not(.is-analyzed) { height: 144px; }
+    .record-card.is-text.is-analyzed { height: 442px; }
+    .record-card.is-text.is-analyzed.is-collapsed { height: 232px; }
+    .record-card.is-short-text:not(.is-analyzed) { height: 116px; }
+    .record-card.is-short-text.is-analyzed { height: 116px; }
+    .record-card.is-quick:not(.is-analyzed) { height: 116px; }
+    .record-card.is-no-extract.is-save-dismissed { height: 80px; }
+    .time { position: relative; top: -2px; margin: 0 0 11px; color: #9f9fa3; font-size: 16px; font-weight: 400; line-height: 22px; }
+    .record-copy { position: relative; top: -6px; margin: 0; color: #37373a; font-size: 17px; font-weight: 400; line-height: 28px; letter-spacing: -.025em; text-align: left; }
+    .record-copy.quick-mood-line { top: -13px; display: flex; height: 48px; margin: 0; align-items: center; gap: 10px; }
+    .quick-mood-icon { width: 20px; height: 20px; flex: 0 0 auto; object-fit: contain; }
+    .voice-duration { display: inline-flex; height: 21px; margin-right: 5px; padding: 0 9px; align-items: center; gap: 5px; border-radius: 11px; background: #f4f4f5; font-size: 13px; line-height: 21px; vertical-align: 2px; white-space: nowrap; }
+    .play { width: 0; height: 0; border-top: 5px solid transparent; border-bottom: 5px solid transparent; border-left: 8px solid #ff66a0; }
+    .saving { position: absolute; bottom: 18px; left: 14px; display: flex; align-items: center; gap: 10px; color: #a5a5aa; font-size: 15px; line-height: 22px; }
+    .saving-icon { width: 18px; height: 18px; flex: 0 0 auto; object-fit: contain; }
+    .record-card.is-no-extract .saving { transform: translateY(4px); }
+    .record-card.is-no-extract .saving { gap: 4px; }
+    .record-card.is-no-extract .saving-icon { width: 20px; height: 20px; }
+    .record-card.is-no-extract.is-save-fading .saving { opacity: 0; transition: opacity 300ms ease; }
+    .record-card.is-quick .saving { top: 81px; bottom: auto; }
+    .record-card.is-analyzed .saving { opacity: 0; transition: opacity 120ms ease; }
+
+    .analysis-result { position: absolute; top: 124px; right: 12px; left: 12px; visibility: hidden; opacity: 0 !important; }
+    .record-card.is-text .analysis-result { top: 100px; }
+    .record-card.is-quick .analysis-result { top: 81px; }
+    .record-card.is-short-text .analysis-result { top: 66px; }
+    .record-card.is-analyzed .analysis-result { visibility: visible; opacity: 1 !important; transition: opacity 300ms ease 150ms; }
+    .tag-groups { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; padding-top: 8px; padding-bottom: 4px; }
+    .tag-row { display: flex; gap: 8px; min-height: 16px; align-items: center; }
+    .tag { display: inline-flex; height: 16px; align-items: center; padding: 0 6px; border: 1px solid currentcolor; border-radius: 5px; font-size: 11px; line-height: 14px; white-space: nowrap; }
+    .tag.pink-fill { border-color: #ffe1ed; background: #ffe1ed; color: #ff4e92; }
+    .tag.pink { color: #ff4e92; }
+    .tag.orange { color: #ffb400; }
+    .tag.coral-fill { border-color: #ffe4db; background: #ffe4db; color: #ff7048; }
+    .tag.purple { color: #c44cff; }
+    .analysis-divider { height: 1px; margin: 8px 0; background: #ececef; }
+    .analysis-title { display: flex; width: 100%; height: 25px; margin: 0 0 6px; padding: 0; align-items: center; gap: 7px; border: 0; background: transparent; color: #353538; font-size: 17px; font-weight: 600; line-height: 25px; text-align: left; cursor: pointer; }
+    .record-card.is-quick .analysis-title { height: 44px; border-top: .5px solid #e8e8e8; }
+    .analysis-title img { width: 18px; height: 18px; object-fit: contain; }
+    .collapse-mark { position: relative; width: 13px; height: 13px; margin-left: auto; transition: transform 200ms ease; }
+    .collapse-mark::before { position: absolute; top: 4px; left: 1px; width: 8px; height: 8px; border-top: 1.5px solid #c9c9cd; border-left: 1.5px solid #c9c9cd; content: ""; transform: rotate(45deg); }
+    .record-card.is-collapsed .collapse-mark { transform: rotate(180deg); }
+    .analysis-details { max-height: 220px; overflow: hidden; opacity: 1; transition: max-height 250ms ease, opacity 180ms ease; }
+    .record-card.is-collapsed .analysis-details { max-height: 0; opacity: 0; }
+    .mood-chart { position: relative; height: 118px; overflow: hidden; border-radius: 10px; background: #fafafa; opacity: 0; }
+    .mood-chart svg { display: block; width: 100%; height: 100%; padding: 0 8px; }
+    .mood-chart text { font-size: 11px; }
+    .record-card.is-analyzed .mood-chart { animation: chart-fade-in 300ms ease 150ms forwards; }
+    .analysis-line { stroke-dasharray: 1; stroke-dashoffset: 1; }
+    .record-card.is-analyzed .analysis-line { animation: draw-analysis-line 650ms ease-out 950ms forwards; }
+    .analysis-points circle { opacity: 0; }
+    .record-card.is-analyzed .analysis-points circle { animation: show-analysis-point 160ms ease forwards; }
+    .record-card.is-analyzed .analysis-points circle:nth-child(1) { animation-delay: 500ms; }
+    .record-card.is-analyzed .analysis-points circle:nth-child(2) { animation-delay: 560ms; }
+    .record-card.is-analyzed .analysis-points circle:nth-child(3) { animation-delay: 620ms; }
+    .record-card.is-analyzed .analysis-points circle:nth-child(4) { animation-delay: 680ms; }
+    .record-card.is-analyzed .analysis-points circle:nth-child(5) { animation-delay: 740ms; }
+    .record-card.is-analyzed .analysis-points circle:nth-child(6) { animation-delay: 800ms; }
+    .record-card.is-analyzed .analysis-points circle:nth-child(7) { animation-delay: 860ms; }
+    .analysis-copy { margin: 8px 0 0; color: #37373a; font-size: 17px; line-height: 27px; letter-spacing: -.02em; }
+    .analysis-copy em { color: #ff4e92; font-style: normal; }
+    @keyframes chart-fade-in { to { opacity: 1; } }
+    @keyframes show-analysis-point { to { opacity: 1; } }
+    @keyframes draw-analysis-line { to { stroke-dashoffset: 0; } }
+
+    .quick-card { position: absolute; z-index: 3; right: 12px; bottom: 91px; left: 12px; height: 142px; padding: 12px; border-radius: 20px; background: rgb(255 255 255 / 96%); box-shadow: 0 0 20px rgb(0 0 0 / 7%); }
+    .quick-list { display: grid; grid-template-columns: repeat(4, 1fr); height: 61px; }
+    .quick-item { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 0; border: 0; background: transparent; color: #353538; font-size: 13px; line-height: 17px; cursor: pointer; }
+    .quick-item img { width: 26px; height: 26px; object-fit: contain; transition: transform 120ms ease; }
+    .quick-item:active img { transform: scale(.9); }
+    .voice-button { position: absolute; right: 12px; bottom: 12px; left: 12px; display: flex; height: 48px; align-items: center; justify-content: center; padding: 0; border: 1px solid #dddddf; border-radius: 25px; outline: none; background: #fff; color: #37373a; font-size: 17px; font-weight: 600; cursor: pointer; }
+    .voice-button img { position: absolute; left: 12px; width: 26px; height: 26px; }
+    .voice-button.is-pressing { background: #f7f7f8; transform: scale(.995); }
+    .tabbar { position: absolute; z-index: 4; bottom: 0; left: 0; display: block; width: 402px; height: 83px; object-fit: fill; background: #fff; }
+    @media (prefers-reduced-motion: reduce) {
+      .quick-item img, .record-card, .record-card > * { transition: none !important; }
+      .mood-chart, .analysis-line, .analysis-points circle { animation: none !important; opacity: 1 !important; stroke-dashoffset: 0 !important; }
+    }
+  </style>
+</head>
+<body>
+  <main class="screen" aria-label="点滴记录反馈页面">
+    <header>
+      <div class="status-bar" aria-hidden="true">
+        <span class="clock">9:41</span>
+        <span class="dynamic-island"></span>
+        <span class="system-icons"><span class="signal"><i></i><i></i><i></i><i></i></span><span class="wifi"><i></i></span><span class="battery"></span></span>
+      </div>
+      <div class="title-bar">
+        <h1>点滴</h1>
+        <div class="motion-controls" aria-label="动效触发选项">
+          <button class="motion-trigger" type="button" data-trigger="voice" aria-pressed="false">语音</button>
+          <div class="text-control">
+            <button class="motion-trigger text-trigger" type="button" data-trigger="text" aria-expanded="false">文字</button>
+            <div class="text-options" aria-label="文字动效类型">
+              <button class="text-option" type="button" data-text-state="feedback" aria-pressed="false">有AI反馈</button>
+              <button class="text-option" type="button" data-text-state="no-feedback" aria-pressed="false">无AI反馈</button>
+              <button class="text-option" type="button" data-text-state="no-extract" aria-pressed="false">无提取</button>
+            </div>
+          </div>
+          <button class="motion-trigger" type="button" data-trigger="quick" aria-pressed="false">快捷</button>
+        </div>
+      </div>
+    </header>
+
+    <div class="timeline-line" aria-hidden="true"></div>
+
+    <section class="timeline-scroll" aria-label="5月20日的记录">
+      <span class="timeline-dot primary" aria-hidden="true"></span>
+      <div class="date-row"><span class="date">5月20日</span><span class="weekday">周五</span></div>
+      <div class="records-list" aria-live="polite"></div>
+      <template id="recordCardTemplate">
+      <div class="record-entry">
+       <span class="entry-dot" aria-hidden="true"></span>
+       <article class="record-card">
+        <p class="time">20:00</p>
+        <p class="record-copy"><span class="voice-duration"><span class="play"></span>12'</span>宝宝今天的体重是9.3公斤，大女儿今天第一次来月经。血量挺多的，我今天挺担心的。</p>
+        <div class="saving" role="status"><img class="saving-icon" src="切图/深度思考.gif" alt=""><span class="saving-text">记录保存中...</span></div>
+        <div class="analysis-result">
+          <div class="tag-groups" aria-label="AI提取内容">
+            <div class="tag-row"><span class="tag pink-fill">女儿</span><span class="tag pink">月经来了</span><span class="tag pink">血量</span></div>
+            <div class="tag-row"><span class="tag pink-fill">我</span><span class="tag orange">心情</span></div>
+            <div class="tag-row"><span class="tag coral-fill">宝宝</span><span class="tag purple">体重</span></div>
+          </div>
+          <div class="analysis-divider"></div>
+          <section aria-label="近7天情绪分析">
+            <button class="analysis-title" type="button" aria-expanded="true"><img src="切图/深度思考.png" alt="">近7天情绪变化曲线<span class="collapse-mark" aria-hidden="true"></span></button>
+            <div class="analysis-details">
+             <div class="mood-chart" aria-label="5月15日至今天的情绪变化折线图">
+              <svg viewBox="0 0 342 118" role="img" aria-hidden="true">
+                <rect x="38" y="8" width="294" height="32" fill="#fffbed"/>
+                <rect x="38" y="40" width="294" height="32" fill="#f1f8ff"/>
+                <rect x="38" y="72" width="294" height="32" fill="#fff4f7"/>
+                <g fill="#a0a0a5" font-family="PingFang SC, Microsoft YaHei, sans-serif" font-size="11">
+                  <text x="12" y="27">积极</text><text x="12" y="58">一般</text><text x="12" y="88">消极</text>
+                  <text x="47" y="115">5/15</text><text x="89" y="115">5/16</text><text x="132" y="115">5/17</text><text x="174" y="115">5/18</text><text x="217" y="115">5/19</text><text x="260" y="115">5/20</text><text x="309" y="115">今天</text>
+                </g>
+                <polyline class="analysis-line" pathLength="1" points="59,48 101,80 143,64 186,48 228,48 270,16 312,32" fill="none" stroke="#ff6c9f" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <g class="analysis-points" fill="#ff6c9f"><circle cx="59" cy="48" r="4"/><circle cx="101" cy="80" r="4"/><circle cx="143" cy="64" r="4"/><circle cx="186" cy="48" r="4"/><circle cx="228" cy="48" r="4"/><circle cx="270" cy="16" r="4"/><circle cx="312" cy="32" r="4"/></g>
+              </svg>
+             </div>
+             <p class="analysis-copy">近7天心情整体在往好的方向走，状态在慢慢变好，<em>卵泡期</em>雌激素正在回升，身体和情绪一起在向上走。</p>
+            </div>
+          </section>
+        </div>
+       </article>
+      </div>
+      </template>
+    </section>
+
+    <p class="empty-hint">可通过右上角按钮触发输入交互</p>
+
+    <section class="quick-card" aria-label="快捷记录">
+      <div class="quick-list">
+        <button class="quick-item" type="button"><img src="切图/症状.png" alt="">症状</button>
+        <button class="quick-item" type="button"><img src="切图/体重.png" alt="">体重</button>
+        <button class="quick-item" type="button"><img src="切图/心情.png" alt="">心情</button>
+        <button class="quick-item" type="button"><img src="切图/饮食.png" alt="">饮食</button>
+      </div>
+      <button class="voice-button" type="button" aria-label="按住说话"><img src="切图/切换键盘.png" alt=""><span>按住说话</span></button>
+    </section>
+
+    <img class="tabbar" src="切图/TabBar.png" alt="首页、记录、点滴、回顾、我的底部导航">
+  </main>
+
+  <script>
+    const voiceButton = document.querySelector('.voice-button');
+    const emptyHint = document.querySelector('.empty-hint');
+    const voiceLabel = voiceButton.querySelector('span');
+    function startVoice() { voiceButton.classList.add('is-pressing'); voiceLabel.textContent = '松开发送'; }
+    function stopVoice() { voiceButton.classList.remove('is-pressing'); voiceLabel.textContent = '按住说话'; }
+    voiceButton.addEventListener('pointerdown', startVoice);
+    voiceButton.addEventListener('pointerup', stopVoice);
+    voiceButton.addEventListener('pointercancel', stopVoice);
+    voiceButton.addEventListener('pointerleave', stopVoice);
+
+    const motionTriggers = document.querySelectorAll('.motion-trigger');
+    const textTrigger = document.querySelector('.text-trigger');
+    const textOptions = document.querySelector('.text-options');
+    const textOptionButtons = document.querySelectorAll('.text-option');
+    const timelineScroll = document.querySelector('.timeline-scroll');
+    const recordsList = document.querySelector('.records-list');
+    const recordCardTemplate = document.querySelector('#recordCardTemplate');
+    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const analysisCopySegments = [
+      { text: '近7天心情整体在往好的方向走，状态在慢慢变好，' },
+      { text: '卵泡期', accent: true },
+      { text: '雌激素正在回升，身体和情绪一起在向上走。' }
+    ];
+
+    function typeAnalysisCopy(element, onUpdate) {
+      element.replaceChildren();
+      let segmentIndex = 0;
+      let characterIndex = 0;
+      let segmentElement;
+
+      function typeNextCharacter() {
+        const segment = analysisCopySegments[segmentIndex];
+        if (!segmentElement) {
+          segmentElement = document.createElement(segment.accent ? 'em' : 'span');
+          element.appendChild(segmentElement);
+        }
+        segmentElement.textContent += [...segment.text][characterIndex];
+        onUpdate();
+        characterIndex += 1;
+        if (characterIndex >= [...segment.text].length) {
+          segmentIndex += 1;
+          characterIndex = 0;
+          segmentElement = null;
+        }
+        if (segmentIndex < analysisCopySegments.length) window.setTimeout(typeNextCharacter, 38);
+      }
+
+      typeNextCharacter();
+    }
+
+    function playVoiceRecordAnimation(source = 'voice') {
+      const fragment = recordCardTemplate.content.cloneNode(true);
+      const entry = fragment.querySelector('.record-entry');
+      const recordCard = fragment.querySelector('.record-card');
+      const recordCopy = fragment.querySelector('.record-copy');
+      const savingText = fragment.querySelector('.saving-text');
+      const savingIcon = fragment.querySelector('.saving-icon');
+      const analysisToggle = fragment.querySelector('.analysis-title');
+      const analysisResult = fragment.querySelector('.analysis-result');
+      const analysisCopy = fragment.querySelector('.analysis-copy');
+      const tagGroups = fragment.querySelector('.tag-groups');
+      const hasAnalysisFeedback = source === 'voice' || source === 'text' || source === 'quick';
+
+      if (source !== 'voice') {
+        recordCard.classList.add('is-text');
+        fragment.querySelector('.voice-duration')?.remove();
+      }
+      if (source === 'no-feedback') {
+        recordCard.classList.add('is-short-text');
+        recordCopy.textContent = '今天排便困难。';
+        tagGroups.innerHTML = '<div class="tag-row"><span class="tag orange">便便</span></div>';
+        fragment.querySelector('.analysis-divider')?.remove();
+        fragment.querySelector('[aria-label="近7天情绪分析"]')?.remove();
+      }
+      if (source === 'no-extract') {
+        recordCard.classList.add('is-short-text', 'is-no-extract');
+        recordCopy.textContent = '我今天出门玩了。';
+        analysisResult.remove();
+      }
+      if (source === 'quick') {
+        recordCard.classList.add('is-quick');
+        recordCopy.classList.add('quick-mood-line');
+        recordCopy.innerHTML = '<img class="quick-mood-icon" src="切图/心情.png" alt=""><span>心情：开心</span>';
+        tagGroups.remove();
+        fragment.querySelector('.analysis-divider')?.remove();
+      }
+      if (!prefersReducedMotion && hasAnalysisFeedback) analysisCopy.textContent = '';
+
+      function syncAnalyzedCardHeight() {
+        if (!recordCard.classList.contains('is-analyzed') || recordCard.classList.contains('is-collapsed')) return;
+        const bottomInset = source === 'no-feedback' ? 8 : 12;
+        const nextHeight = analysisResult.offsetTop + analysisResult.scrollHeight + bottomInset;
+        recordCard.style.height = `${nextHeight}px`;
+        if (entry === recordsList.lastElementChild) {
+          window.requestAnimationFrame(() => { timelineScroll.scrollTop = timelineScroll.scrollHeight; });
+        }
+      }
+
+      savingText.textContent = source === 'quick' ? 'AI分析中...' : '记录保存中...';
+      if (hasAnalysisFeedback) {
+        analysisToggle.addEventListener('click', () => {
+          const isCollapsed = recordCard.classList.toggle('is-collapsed');
+          entry.classList.toggle('is-collapsed', isCollapsed);
+          analysisToggle.setAttribute('aria-expanded', String(!isCollapsed));
+          if (isCollapsed) recordCard.style.height = '';
+          else window.requestAnimationFrame(syncAnalyzedCardHeight);
+        });
+      }
+
+      recordsList.appendChild(fragment);
+      void recordCard.offsetHeight;
+      entry.classList.add('is-visible');
+      recordCard.classList.add('is-visible');
+      emptyHint.classList.add('is-hidden');
+      timelineScroll.scrollTop = timelineScroll.scrollHeight;
+
+      function completeAnalysis() {
+        recordCard.classList.add('is-analyzed');
+        window.requestAnimationFrame(syncAnalyzedCardHeight);
+        if (!prefersReducedMotion && hasAnalysisFeedback) window.setTimeout(() => typeAnalysisCopy(analysisCopy, syncAnalyzedCardHeight), 1600);
+        window.setTimeout(() => {
+          if (entry === recordsList.lastElementChild) timelineScroll.scrollTop = timelineScroll.scrollHeight;
+        }, 300);
+      }
+
+      window.setTimeout(() => {
+        if (source === 'no-extract') {
+          savingText.textContent = '已保存';
+          savingIcon.src = '切图/完成.png';
+          savingIcon.alt = '';
+          window.setTimeout(() => {
+            recordCard.classList.add('is-save-fading');
+            window.setTimeout(() => {
+              recordCard.classList.add('is-save-dismissed');
+            }, 300);
+          }, 2000);
+          return;
+        }
+        if (source === 'quick') {
+          completeAnalysis();
+          return;
+        }
+        savingText.textContent = 'AI分析中...';
+        window.setTimeout(() => {
+          completeAnalysis();
+        }, 2000);
+      }, 2000);
+    }
+
+    motionTriggers.forEach((button) => {
+      button.addEventListener('click', () => {
+        const isText = button === textTrigger;
+        const willOpen = isText && button.getAttribute('aria-expanded') !== 'true';
+        motionTriggers.forEach((item) => item.setAttribute('aria-pressed', String(item === button)));
+        textTrigger.setAttribute('aria-expanded', String(willOpen));
+        textOptions.classList.toggle('is-open', willOpen);
+        if (button.dataset.trigger === 'voice') {
+          playVoiceRecordAnimation();
+        }
+        if (button.dataset.trigger === 'quick') {
+          playVoiceRecordAnimation('quick');
+        }
+      });
+    });
+
+    textOptionButtons.forEach((button) => {
+      button.addEventListener('click', () => {
+        textOptionButtons.forEach((item) => item.setAttribute('aria-pressed', String(item === button)));
+        textTrigger.setAttribute('aria-pressed', 'true');
+        textTrigger.setAttribute('aria-expanded', 'false');
+        textOptions.classList.remove('is-open');
+        if (button.dataset.textState === 'feedback') playVoiceRecordAnimation('text');
+        if (button.dataset.textState === 'no-feedback') playVoiceRecordAnimation('no-feedback');
+        if (button.dataset.textState === 'no-extract') playVoiceRecordAnimation('no-extract');
+      });
+    });
+  </script>
+</body>
+</html>
