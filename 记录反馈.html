@@ -46,7 +46,7 @@
     .record-card { position: relative; z-index: 1; width: calc(100% - 16px); visibility: hidden; height: 174px; margin-left: 16px; padding: 13px 12px; overflow: hidden; border-radius: 12px; background: #fff; clip-path: inset(0 0 100% 0 round 12px); pointer-events: none; }
     .record-card > * { opacity: 0; }
     .record-card.is-visible { visibility: visible; clip-path: inset(0 0 0 0 round 12px); pointer-events: auto; transition: clip-path 150ms ease-out, height 300ms ease; }
-    .record-card.is-visible.is-no-extract { transition: clip-path 150ms ease-out, height 150ms ease; }
+    .record-card.is-visible.is-no-extract { transition: clip-path 150ms ease-out, height 250ms ease; }
     .record-card.is-visible > * { opacity: 1; transition: opacity 300ms ease 150ms; }
     .record-card.is-analyzed { height: 466px; }
     .record-card.is-analyzed.is-collapsed { height: 256px; }
@@ -68,7 +68,7 @@
     .record-card.is-no-extract .saving { transform: translateY(4px); }
     .record-card.is-no-extract .saving { gap: 4px; }
     .record-card.is-no-extract .saving-icon { width: 20px; height: 20px; }
-    .record-card.is-no-extract.is-save-fading .saving { opacity: 0; transition: opacity 150ms ease; }
+    .record-card.is-no-extract.is-save-fading .saving { opacity: 0; transition: opacity 250ms ease; }
     .record-card.is-quick .saving { top: 81px; bottom: auto; }
     .record-card.is-analyzed .saving { opacity: 0; transition: opacity 120ms ease; }
 
