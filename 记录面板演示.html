@@ -137,10 +137,19 @@
   .fourth.is-swiping, .fourth.is-swiping button { cursor: grabbing; }
   .fourth.is-swiping .record-pages-track { transition: none; }
   .record-tabs.is-swiping::before { transition: none; transform: translateX(var(--drag-x)); }
+
+  #scheme-description { font-size: 12px; white-space: nowrap; }
+  .scheme-options button { padding-left: 7px; padding-right: 7px; }
+  #app.scheme-four-two.minimized .panel { height: 241px; }
+  .scheme-four-two.minimized .compact-records { display: none; }
+  .scheme-four-two.minimized .fourth { visibility: visible; pointer-events: auto; }
+  .scheme-four-two.minimized .record-tabs { top: 29px; height: 32px; border-radius: 18px; }
+  .scheme-four-two.minimized .record-tabs::before { height: 28px; border-radius: 16px; }
+  .scheme-four-two.minimized .record-pages { top: 74px; height: 98px; mask-image: linear-gradient(to bottom, #000 0%, #000 64%, transparent 100%); -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 64%, transparent 100%); }
 </style>
 </head>
 <body>
-<div class="scheme-switch" aria-label="切换交互方案"><span id="scheme-description">方案4 · Tab切换</span><div class="scheme-options"><button type="button" data-scheme="1" aria-pressed="false">方案1</button><button type="button" data-scheme="2" aria-pressed="false">方案2</button><button type="button" data-scheme="3" aria-pressed="false">方案3</button><button type="button" data-scheme="4" aria-pressed="true">方案4</button></div></div>
+<div class="scheme-switch" aria-label="切换交互方案"><span id="scheme-description">方案4.2 · 保留Tab</span><div class="scheme-options"><button type="button" data-scheme="1" aria-pressed="false">方案1</button><button type="button" data-scheme="2" aria-pressed="false">方案2</button><button type="button" data-scheme="3" aria-pressed="false">方案3</button><button type="button" data-scheme="4" aria-pressed="false">方案4</button><button type="button" data-scheme="4.2" aria-pressed="true">方案4.2</button></div></div>
 <main class="viewport" aria-label="点滴记录，402×874" id="app">
   <div class="background" aria-hidden="true"></div>
   <div class="timeline-background" aria-hidden="true"></div>
@@ -195,7 +204,7 @@
   const app = document.querySelector('#app');
   const quick = document.querySelector('#quick');
   const full = document.querySelector('#full');
-  let currentScheme = 4;
+  let currentScheme = 4.2;
   let allOpen = false;
   function toggleAll(open) {
     allOpen = open;
@@ -224,16 +233,17 @@
     grip.setAttribute('aria-label', minimized ? '展开记录面板' : '收起记录面板');
     grip.setAttribute('aria-expanded', String(!minimized));
     const expanded = app.classList.contains('expanded');
-    for (const [id, active] of [['quick', currentScheme <= 2 && !expanded], ['full', currentScheme === 1 && expanded], ['third', currentScheme === 3], ['fourth', currentScheme === 4]]) {
+    for (const [id, active] of [['quick', currentScheme <= 2 && !expanded], ['full', currentScheme === 1 && expanded], ['third', currentScheme === 3], ['fourth', currentScheme === 4 || currentScheme === 4.2]]) {
       const pane = document.getElementById(id);
-      pane.inert = minimized || !active;
-      pane.setAttribute('aria-hidden', String(minimized || !active));
+      const hidden = !active || (minimized && !(id === 'fourth' && currentScheme === 4.2));
+      pane.inert = hidden;
+      pane.setAttribute('aria-hidden', String(hidden));
     }
-    const babySelected = currentScheme === 4 && document.querySelector('.record-tabs').classList.contains('baby-selected');
+    const babySelected = (currentScheme === 4 || currentScheme === 4.2) && document.querySelector('.record-tabs').classList.contains('baby-selected');
     document.querySelector('#compact-self').hidden = babySelected;
     document.querySelector('#compact-baby').hidden = !babySelected;
-    document.querySelector('#compact').inert = !minimized;
-    document.querySelector('#compact').setAttribute('aria-hidden', String(!minimized));
+    document.querySelector('#compact').inert = !minimized || currentScheme === 4.2;
+    document.querySelector('#compact').setAttribute('aria-hidden', String(!minimized || currentScheme === 4.2));
     const hideVoice = !minimized && currentScheme === 1 && expanded;
     document.querySelector('.voice').inert = hideVoice;
     document.querySelector('.voice').setAttribute('aria-hidden', String(hideVoice));
@@ -247,9 +257,10 @@
     app.classList.remove('expanded');
     app.classList.toggle('scheme-two', scheme === 2);
     app.classList.toggle('scheme-three', scheme === 3);
-    app.classList.toggle('scheme-four', scheme === 4);
-    document.querySelector('#fourth').inert = scheme !== 4;
-    document.querySelector('#fourth').setAttribute('aria-hidden', String(scheme !== 4));
+    app.classList.toggle('scheme-four', scheme === 4 || scheme === 4.2);
+    app.classList.toggle('scheme-four-two', scheme === 4.2);
+    document.querySelector('#fourth').inert = scheme !== 4 && scheme !== 4.2;
+    document.querySelector('#fourth').setAttribute('aria-hidden', String(scheme !== 4 && scheme !== 4.2));
     app.classList.toggle('all-open', scheme === 3 && allOpen);
     document.querySelector('#third').inert = scheme !== 3;
     document.querySelector('#third').setAttribute('aria-hidden', String(scheme !== 3));
@@ -260,7 +271,7 @@
     app.classList.toggle('baby-open', scheme === 2 && groupOpen.baby);
     app.classList.toggle('mother-open', scheme === 2 && groupOpen.mother);
     document.querySelectorAll('[data-scheme]').forEach(button => button.setAttribute('aria-pressed', String(Number(button.dataset.scheme) === scheme)));
-    document.querySelector('#scheme-description').textContent = ['', '方案1 · 左滑切换', '方案2 · 分组展开', '方案3 · 全部展开', '方案4 · Tab切换'][scheme];
+    document.querySelector('#scheme-description').textContent = scheme === 4.2 ? '方案4.2 · 保留Tab' : ['', '方案1 · 左滑切换', '方案2 · 分组展开', '方案3 · 全部展开', '方案4 · Tab切换'][scheme];
     for (const group of ['baby', 'mother']) {
       const button = document.querySelector('#quick-' + group + ' [data-more]');
       const open = scheme === 2 && groupOpen[group];
@@ -420,7 +431,7 @@
   render('compact-self', tabItems(selfLabels));
   render('compact-baby', tabItems(babyLabels));
   document.querySelector('.panel-grip').addEventListener('click', () => setPanelMinimized(!app.classList.contains('minimized')));
-  selectScheme(4);
+  selectScheme(4.2);
   document.querySelector('.back').addEventListener('click', () => setExpanded(false));
   document.addEventListener('keydown', event => { if (event.key === 'Escape' && app.classList.contains('expanded')) setExpanded(false); });
   document.querySelector('.voice input').addEventListener('keydown', event => {
