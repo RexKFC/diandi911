@@ -162,16 +162,26 @@
   /* 方案1始终复用同一Tab记录列表，面板高度决定可见范围。 */
   #app.scheme-four .fourth { visibility: visible; pointer-events: auto; opacity: 1; }
   #app.scheme-four .compact-records { display: none; }
-  .scheme-four .record-tabs { top: 24px; z-index: 1; opacity: 1; transition: opacity var(--motion) var(--ease); }
-  .scheme-four.minimized .record-tabs { top: 24px; opacity: 0; pointer-events: none; }
+  .scheme-four .record-tabs { top: var(--tab-top, 24px); z-index: 1; opacity: 1; transition: opacity var(--motion) var(--ease); }
+  .scheme-four.minimized .record-tabs { top: var(--tab-top, 24px); opacity: 0; pointer-events: none; }
   .scheme-four .record-pages { z-index: 2; background: #fff; top: 85px; bottom: 66px; height: auto; transition: top var(--motion) var(--ease); mask-image: linear-gradient(to bottom, #000 0%, #000 calc(100% - 24px), transparent 100%); -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 calc(100% - 24px), transparent 100%); }
   .scheme-four.minimized .record-pages { top: 24px; }
-  #app.scheme-four.panel-resizing .record-tabs { top: 24px; opacity: var(--panel-progress); transition: none; }
-  #app.scheme-four.panel-resizing .record-pages { top: calc(24px + 61px * var(--panel-progress)); transition: none; }
+  #app.scheme-four.panel-resizing .record-tabs { top: var(--tab-top, 24px); opacity: var(--panel-progress); transition: none; }
+  #app.scheme-four.panel-resizing .record-pages { top: calc(24px + var(--record-rise, 61px) * var(--panel-progress)); transition: none; }
+
+  /* 方案1.1仅缩小Tab高度，其余布局和交互完全复用方案1。 */
+  .scheme-one-small-tab .record-tabs { height: 32px; border-radius: 18px; }
+  .scheme-one-small-tab .record-tabs::before { height: 28px; border-radius: 16px; }
+
+  /* 方案1.1按参考图缩减面板和Tab区域高度，记录位置与底部输入框保持对齐。 */
+  .scheme-one-small-tab { --record-rise: 46px; --tab-top: 21px; }
+  .viewport.scheme-one-small-tab .panel { height: 347px; }
+  .scheme-one-small-tab .record-pages { top: 70px; }
+  #app.scheme-one-small-tab.panel-resizing { --background-rise: calc(173px * var(--panel-progress)); }
 </style>
 </head>
 <body>
-<div class="scheme-switch" aria-label="切换交互方案"><span id="scheme-description">方案1 · Tab切换</span><div class="scheme-options"><button type="button" data-scheme="4" aria-pressed="true">方案1</button><button type="button" data-scheme="1" aria-pressed="false">方案2</button><button type="button" data-scheme="2" aria-pressed="false">方案3</button><button type="button" data-scheme="3" aria-pressed="false">方案4</button></div></div>
+<div class="scheme-switch" aria-label="切换交互方案"><span id="scheme-description">方案1.1 · 小Tab</span><div class="scheme-options"><button type="button" data-scheme="4" aria-pressed="false">方案1</button><button type="button" data-scheme="4.1" aria-pressed="true">方案1.1</button><button type="button" data-scheme="1" aria-pressed="false">方案2</button><button type="button" data-scheme="2" aria-pressed="false">方案3</button><button type="button" data-scheme="3" aria-pressed="false">方案4</button></div></div>
 <main class="viewport" aria-label="点滴记录，402×874" id="app">
   <div class="background" aria-hidden="true"></div>
   <div class="timeline-background" aria-hidden="true"></div>
@@ -226,7 +236,8 @@
   const app = document.querySelector('#app');
   const quick = document.querySelector('#quick');
   const full = document.querySelector('#full');
-  let currentScheme = 4;
+  let currentScheme = 4.1;
+  function isTabScheme(scheme = currentScheme) { return scheme === 4 || scheme === 4.1; }
   let allOpen = false;
   function toggleAll(open) {
     allOpen = open;
@@ -255,17 +266,17 @@
     grip.setAttribute('aria-label', minimized ? '展开记录面板' : '收起记录面板');
     grip.setAttribute('aria-expanded', String(!minimized));
     const expanded = app.classList.contains('expanded');
-    for (const [id, active] of [['quick', currentScheme <= 2 && !expanded], ['full', currentScheme === 1 && expanded], ['third', currentScheme === 3], ['fourth', currentScheme === 4]]) {
+    for (const [id, active] of [['quick', currentScheme <= 2 && !expanded], ['full', currentScheme === 1 && expanded], ['third', currentScheme === 3], ['fourth', isTabScheme()]]) {
       const pane = document.getElementById(id);
       const hidden = !active || (minimized && id !== 'fourth');
       pane.inert = hidden;
       pane.setAttribute('aria-hidden', String(hidden));
     }
-    const babySelected = (currentScheme === 4) && document.querySelector('.record-tabs').classList.contains('baby-selected');
+    const babySelected = (isTabScheme()) && document.querySelector('.record-tabs').classList.contains('baby-selected');
     document.querySelector('#compact-self').hidden = babySelected;
     document.querySelector('#compact-baby').hidden = !babySelected;
-    document.querySelector('#compact').inert = !minimized || currentScheme === 4;
-    document.querySelector('#compact').setAttribute('aria-hidden', String(!minimized || currentScheme === 4));
+    document.querySelector('#compact').inert = !minimized || isTabScheme();
+    document.querySelector('#compact').setAttribute('aria-hidden', String(!minimized || isTabScheme()));
     const hideVoice = !minimized && currentScheme === 1 && expanded;
     document.querySelector('.voice').inert = hideVoice;
     document.querySelector('.voice').setAttribute('aria-hidden', String(hideVoice));
@@ -279,9 +290,10 @@
     app.classList.remove('expanded');
     app.classList.toggle('scheme-two', scheme === 2);
     app.classList.toggle('scheme-three', scheme === 3);
-    app.classList.toggle('scheme-four', scheme === 4);
-    document.querySelector('#fourth').inert = scheme !== 4;
-    document.querySelector('#fourth').setAttribute('aria-hidden', String(scheme !== 4));
+    app.classList.toggle('scheme-four', isTabScheme(scheme));
+    app.classList.toggle('scheme-one-small-tab', scheme === 4.1);
+    document.querySelector('#fourth').inert = !isTabScheme(scheme);
+    document.querySelector('#fourth').setAttribute('aria-hidden', String(!isTabScheme(scheme)));
     app.classList.toggle('all-open', scheme === 3 && allOpen);
     document.querySelector('#third').inert = scheme !== 3;
     document.querySelector('#third').setAttribute('aria-hidden', String(scheme !== 3));
@@ -292,7 +304,7 @@
     app.classList.toggle('baby-open', scheme === 2 && groupOpen.baby);
     app.classList.toggle('mother-open', scheme === 2 && groupOpen.mother);
     document.querySelectorAll('[data-scheme]').forEach(button => button.setAttribute('aria-pressed', String(Number(button.dataset.scheme) === scheme)));
-    document.querySelector('#scheme-description').textContent = ['', '方案2 · 左滑切换', '方案3 · 分组展开', '方案4 · 全部展开', '方案1 · Tab切换'][scheme];
+    document.querySelector('#scheme-description').textContent = scheme === 4.1 ? '方案1.1 · 小Tab' : ['', '方案2 · 左滑切换', '方案3 · 分组展开', '方案4 · 全部展开', '方案1 · Tab切换'][scheme];
     for (const group of ['baby', 'mother']) {
       const button = document.querySelector('#quick-' + group + ' [data-more]');
       const open = scheme === 2 && groupOpen[group];
@@ -455,12 +467,12 @@
   const resizeGrip = document.querySelector('.panel-grip');
   const recordPanel = document.querySelector('.panel');
   const panelMinHeight = 189;
-  const panelMaxHeight = 362;
+  function getPanelMaxHeight() { return currentScheme === 4.1 ? 347 : 362; }
   let panelResize = null;
   let suppressGripClickUntil = 0;
   resizeGrip.addEventListener('pointerdown', event => {
-    if (currentScheme !== 4 || !event.isPrimary || event.button !== 0 || panelResize) return;
-    panelResize = { id: event.pointerId, startY: event.clientY, startHeight: recordPanel.getBoundingClientRect().height, startMinimized: app.classList.contains('minimized'), height: recordPanel.getBoundingClientRect().height, lastY: event.clientY, lastTime: event.timeStamp, velocity: 0, dragging: false };
+    if (!isTabScheme() || !event.isPrimary || event.button !== 0 || panelResize) return;
+    panelResize = { id: event.pointerId, startY: event.clientY, maxHeight: getPanelMaxHeight(), startHeight: recordPanel.getBoundingClientRect().height, startMinimized: app.classList.contains('minimized'), height: recordPanel.getBoundingClientRect().height, lastY: event.clientY, lastTime: event.timeStamp, velocity: 0, dragging: false };
     resizeGrip.setPointerCapture(event.pointerId);
   });
   resizeGrip.addEventListener('pointermove', event => {
@@ -478,9 +490,9 @@
     if (elapsed > 0) gesture.velocity = (gesture.lastY - event.clientY) / elapsed;
     gesture.lastY = event.clientY;
     gesture.lastTime = event.timeStamp;
-    gesture.height = Math.max(panelMinHeight, Math.min(panelMaxHeight, gesture.startHeight + distance));
+    gesture.height = Math.max(panelMinHeight, Math.min(gesture.maxHeight, gesture.startHeight + distance));
     app.style.setProperty('--panel-drag-height', gesture.height + 'px');
-    app.style.setProperty('--panel-progress', (gesture.height - panelMinHeight) / (panelMaxHeight - panelMinHeight));
+    app.style.setProperty('--panel-progress', (gesture.height - panelMinHeight) / (gesture.maxHeight - panelMinHeight));
   });
   function finishPanelResize(event, cancelled = false) {
     const gesture = panelResize;
@@ -489,7 +501,7 @@
     if (gesture.dragging) {
       suppressGripClickUntil = performance.now() + 350;
       const recentVelocity = event.timeStamp - gesture.lastTime < 100 ? gesture.velocity : 0;
-      const minimized = cancelled ? gesture.startMinimized : Math.abs(recentVelocity) > .45 ? recentVelocity < 0 : gesture.height < (panelMinHeight + panelMaxHeight) / 2;
+      const minimized = cancelled ? gesture.startMinimized : Math.abs(recentVelocity) > .45 ? recentVelocity < 0 : gesture.height < (panelMinHeight + gesture.maxHeight) / 2;
       setPanelMinimized(minimized);
       app.classList.remove('panel-resizing');
       app.style.removeProperty('--panel-drag-height');
@@ -504,7 +516,7 @@
     if (performance.now() < suppressGripClickUntil) { event.preventDefault(); return; }
     setPanelMinimized(!app.classList.contains('minimized'));
   });
-  selectScheme(4);
+  selectScheme(4.1);
   document.querySelector('.back').addEventListener('click', () => setExpanded(false));
   document.addEventListener('keydown', event => { if (event.key === 'Escape' && app.classList.contains('expanded')) setExpanded(false); });
   document.querySelector('.voice input').addEventListener('keydown', event => {
