@@ -140,6 +140,34 @@
 
   #scheme-description { font-size: 12px; white-space: nowrap; }
   .scheme-options button { padding-left: 7px; padding-right: 7px; }
+
+  .scheme-four .panel-grip { touch-action: none; cursor: ns-resize; user-select: none; -webkit-user-select: none; }
+  #app.scheme-four.panel-resizing .panel { height: var(--panel-drag-height); transition: none; }
+  #app.scheme-four.panel-resizing .fourth { pointer-events: none; }
+
+  /* 所有方案：同一时间线随面板高度同步移动；状态栏和底部导航固定。 */
+  .viewport { --background-rise: 210px; }
+  .viewport.expanded { --background-rise: 412px; }
+  .viewport.scheme-two { --background-rise: calc(210px + var(--baby-extra, 0px) + var(--mother-extra, 0px)); }
+  .viewport.scheme-three { --background-rise: 240px; }
+  .viewport.scheme-three.all-open { --background-rise: 380px; }
+  .viewport.scheme-four { --background-rise: 173px; }
+  #app.minimized { --background-rise: 0px; }
+  #app.scheme-four.panel-resizing { --background-rise: calc(var(--panel-drag-height) - 189px); }
+  #app .background { height: 88px; bottom: auto; opacity: 1; transition: none; }
+  #app .timeline-background { top: 88px; bottom: 91px; background: #f2f2f6; opacity: 1; overflow: hidden; transition: none; }
+  .timeline-background::before { content: ''; position: absolute; left: 0; right: 0; top: -88px; height: 594px; background: var(--screen-compact) 0 0 / 402px 874px no-repeat; transform: translateY(calc(-1 * var(--background-rise))); transition: transform var(--motion) var(--ease); will-change: transform; }
+  #app.panel-resizing .timeline-background::before { transition: none; }
+
+  /* 方案1始终复用同一Tab记录列表，面板高度决定可见范围。 */
+  #app.scheme-four .fourth { visibility: visible; pointer-events: auto; opacity: 1; }
+  #app.scheme-four .compact-records { display: none; }
+  .scheme-four .record-tabs { top: 24px; z-index: 1; opacity: 1; transition: opacity var(--motion) var(--ease); }
+  .scheme-four.minimized .record-tabs { top: 24px; opacity: 0; pointer-events: none; }
+  .scheme-four .record-pages { z-index: 2; background: #fff; top: 85px; bottom: 66px; height: auto; transition: top var(--motion) var(--ease); mask-image: linear-gradient(to bottom, #000 0%, #000 calc(100% - 24px), transparent 100%); -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 calc(100% - 24px), transparent 100%); }
+  .scheme-four.minimized .record-pages { top: 24px; }
+  #app.scheme-four.panel-resizing .record-tabs { top: 24px; opacity: var(--panel-progress); transition: none; }
+  #app.scheme-four.panel-resizing .record-pages { top: calc(24px + 61px * var(--panel-progress)); transition: none; }
 </style>
 </head>
 <body>
@@ -229,15 +257,15 @@
     const expanded = app.classList.contains('expanded');
     for (const [id, active] of [['quick', currentScheme <= 2 && !expanded], ['full', currentScheme === 1 && expanded], ['third', currentScheme === 3], ['fourth', currentScheme === 4]]) {
       const pane = document.getElementById(id);
-      const hidden = !active || minimized;
+      const hidden = !active || (minimized && id !== 'fourth');
       pane.inert = hidden;
       pane.setAttribute('aria-hidden', String(hidden));
     }
     const babySelected = (currentScheme === 4) && document.querySelector('.record-tabs').classList.contains('baby-selected');
     document.querySelector('#compact-self').hidden = babySelected;
     document.querySelector('#compact-baby').hidden = !babySelected;
-    document.querySelector('#compact').inert = !minimized;
-    document.querySelector('#compact').setAttribute('aria-hidden', String(!minimized));
+    document.querySelector('#compact').inert = !minimized || currentScheme === 4;
+    document.querySelector('#compact').setAttribute('aria-hidden', String(!minimized || currentScheme === 4));
     const hideVoice = !minimized && currentScheme === 1 && expanded;
     document.querySelector('.voice').inert = hideVoice;
     document.querySelector('.voice').setAttribute('aria-hidden', String(hideVoice));
@@ -423,7 +451,59 @@
   }, true);
   render('compact-self', tabItems(selfLabels));
   render('compact-baby', tabItems(babyLabels));
-  document.querySelector('.panel-grip').addEventListener('click', () => setPanelMinimized(!app.classList.contains('minimized')));
+  // Scheme 1 (internal ID 4): resize the sheet directly with its handle.
+  const resizeGrip = document.querySelector('.panel-grip');
+  const recordPanel = document.querySelector('.panel');
+  const panelMinHeight = 189;
+  const panelMaxHeight = 362;
+  let panelResize = null;
+  let suppressGripClickUntil = 0;
+  resizeGrip.addEventListener('pointerdown', event => {
+    if (currentScheme !== 4 || !event.isPrimary || event.button !== 0 || panelResize) return;
+    panelResize = { id: event.pointerId, startY: event.clientY, startHeight: recordPanel.getBoundingClientRect().height, startMinimized: app.classList.contains('minimized'), height: recordPanel.getBoundingClientRect().height, lastY: event.clientY, lastTime: event.timeStamp, velocity: 0, dragging: false };
+    resizeGrip.setPointerCapture(event.pointerId);
+  });
+  resizeGrip.addEventListener('pointermove', event => {
+    const gesture = panelResize;
+    if (!gesture || event.pointerId !== gesture.id) return;
+    const distance = gesture.startY - event.clientY;
+    if (!gesture.dragging && Math.abs(distance) < 6) return;
+    if (!gesture.dragging) {
+      gesture.dragging = true;
+      setPanelMinimized(gesture.startMinimized, false);
+      app.classList.add('panel-resizing');
+    }
+    event.preventDefault();
+    const elapsed = event.timeStamp - gesture.lastTime;
+    if (elapsed > 0) gesture.velocity = (gesture.lastY - event.clientY) / elapsed;
+    gesture.lastY = event.clientY;
+    gesture.lastTime = event.timeStamp;
+    gesture.height = Math.max(panelMinHeight, Math.min(panelMaxHeight, gesture.startHeight + distance));
+    app.style.setProperty('--panel-drag-height', gesture.height + 'px');
+    app.style.setProperty('--panel-progress', (gesture.height - panelMinHeight) / (panelMaxHeight - panelMinHeight));
+  });
+  function finishPanelResize(event, cancelled = false) {
+    const gesture = panelResize;
+    if (!gesture || event.pointerId !== gesture.id) return;
+    panelResize = null;
+    if (gesture.dragging) {
+      suppressGripClickUntil = performance.now() + 350;
+      const recentVelocity = event.timeStamp - gesture.lastTime < 100 ? gesture.velocity : 0;
+      const minimized = cancelled ? gesture.startMinimized : Math.abs(recentVelocity) > .45 ? recentVelocity < 0 : gesture.height < (panelMinHeight + panelMaxHeight) / 2;
+      setPanelMinimized(minimized);
+      app.classList.remove('panel-resizing');
+      app.style.removeProperty('--panel-drag-height');
+      app.style.removeProperty('--panel-progress');
+    }
+    if (resizeGrip.hasPointerCapture(gesture.id)) resizeGrip.releasePointerCapture(gesture.id);
+  }
+  resizeGrip.addEventListener('pointerup', event => finishPanelResize(event));
+  resizeGrip.addEventListener('pointercancel', event => finishPanelResize(event, true));
+  resizeGrip.addEventListener('lostpointercapture', event => finishPanelResize(event, true));
+  resizeGrip.addEventListener('click', event => {
+    if (performance.now() < suppressGripClickUntil) { event.preventDefault(); return; }
+    setPanelMinimized(!app.classList.contains('minimized'));
+  });
   selectScheme(4);
   document.querySelector('.back').addEventListener('click', () => setExpanded(false));
   document.addEventListener('keydown', event => { if (event.key === 'Escape' && app.classList.contains('expanded')) setExpanded(false); });
